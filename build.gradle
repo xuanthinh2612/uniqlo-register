@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.0' // Add Shadow plugin for fat JAR
+}
+
+group = 'org.com'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+// https://mvnrepository.com/artifact/com.opencsv/opencsv
+    implementation 'com.opencsv:opencsv:5.8'
+    implementation 'org.seleniumhq.selenium:selenium-java:4.31.0'
+    implementation 'org.junit.jupiter:junit-jupiter-engine:5.12.1'
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'org.com.Main'
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
