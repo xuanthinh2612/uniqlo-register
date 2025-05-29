@@ -24,9 +24,13 @@ public class SeleniumService {
         options.setExperimentalOption("useAutomationExtension", false);
 
         // Thiết lập user-agent giống như người dùng thật
-        options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                + "AppleWebKit/537.36 (KHTML, like Gecko) "
-                + "Chrome/124.0.0.0 Safari/537.36");
+        options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36");
+
+        options.addArguments("sec-ch-ua-platform=Windows");
+        options.addArguments("sec-ch-ua-mobile=?0");
+        options.addArguments("referer=https://www.uniqlo.com/");
+        options.addArguments("sec-ch-ua=Chromium;v=137, Not;A Brand;v=24, Google Chrome;v=137");
 
         // Thiết lập đường dẫn đến chromedriver
         driver = new ChromeDriver(options);
