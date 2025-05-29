@@ -1,1 +1,0 @@
-java -jar uniqloRegister-1.0-SNAPSHOT.jar
