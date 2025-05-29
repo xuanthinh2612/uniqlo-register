@@ -10,17 +10,32 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.List;
 
 public class SeleniumService {
-    private WebDriver driver;
-    private WebDriverWait wait;
+    private final WebDriver driver;
+    private final WebDriverWait wait;
 
     public SeleniumService() {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--start-maximized");
+        // Tắt các dấu hiệu cho thấy đang dùng automation
+        options.setExperimentalOption("excludeSwitches", List.of("enable-automation"));
+        options.setExperimentalOption("useAutomationExtension", false);
+
+        // Thiết lập user-agent giống như người dùng thật
+        options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                + "AppleWebKit/537.36 (KHTML, like Gecko) "
+                + "Chrome/124.0.0.0 Safari/537.36");
+
+        // Thiết lập đường dẫn đến chromedriver
         driver = new ChromeDriver(options);
 
-        // Khởi tạo WebDriverWait với timeout 15s
+        // Gỡ dấu hiệu automation (ẩn navigator.webdriver = true)
+        ((JavascriptExecutor) driver).executeScript(
+                "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})");
+
+        // Khởi tạo WebDriverWait với timeout 10s
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
@@ -82,9 +97,8 @@ public class SeleniumService {
             // Hoàn thành
             System.out.println("Dang ky thanh cong! Thanh toan don hang.");
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
+        } catch (Exception ignored) {}
+        finally {
             while (true) {
                 try {
                     if (driver.getWindowHandles().isEmpty()) {
@@ -97,7 +111,7 @@ public class SeleniumService {
                     break;
                 }
                 try {
-                    Thread.sleep(3000); // chờ 1 giây rồi kiểm tra lại
+                    Thread.sleep(3000); // chờ 3 giây rồi kiểm tra lại
                 } catch (Exception ignored) {}
             }
         }
