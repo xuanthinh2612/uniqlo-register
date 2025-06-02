@@ -9,6 +9,7 @@ public class FileService {
     private static final int MAX_EMAIL_COUNT = 1;
     private static final String EMAIL_LIST = "fileInput/emailList.txt";
     private static final String DONE_LIST  = "fileInput/doneList.txt";
+    private static final String ACTION_FILE  = "fileInput/action.txt";
 
 
     public String getPostalCode() {
@@ -26,6 +27,33 @@ public class FileService {
         }
 
         return postalCode.toString();
+    }
+
+    public String getActionFlag() {
+        StringBuilder actionCode = new StringBuilder();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(ACTION_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                actionCode.append(line); // Append the line to form the actionCode
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());;
+            return null; // Return null if an error occurs
+        }
+
+        return actionCode.toString().trim();
+    }
+
+    public void resetActionFlag() {
+        String newFlag = "0";
+        try (FileWriter writer = new FileWriter(ACTION_FILE, false)) {
+            // Overwrite the file content with the new flag value
+            writer.write(newFlag);
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 

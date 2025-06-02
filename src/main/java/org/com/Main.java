@@ -4,15 +4,15 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        FileService csvFileService = new FileService();
+        FileService fileService = new FileService();
         // Đọc danh sách email từ file
-        List<String> emailList = csvFileService.getListEmail();
+        List<String> emailList = fileService.getListEmail();
         if (emailList == null || emailList.isEmpty()) {
             System.out.println("Khong co Email nao trong file!!!");
             System.exit(0); // Exit if no emails are found
         }
         // Đọc dữ liệu từ file
-        String postalCode = csvFileService.getPostalCode();
+        String postalCode = fileService.getPostalCode();
 
         SeleniumService seleniumService = new SeleniumService();
 
@@ -25,7 +25,7 @@ public class Main {
             seleniumService.register(email, postalCode);
         }
 
-        csvFileService.moveProcessedEmails(emailList);
+        fileService.moveProcessedEmails(emailList);
         // In thông báo hoàn thành
         System.out.println("Hoan thanh dang ky!");
 
