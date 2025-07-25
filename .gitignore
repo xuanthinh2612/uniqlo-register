@@ -34,7 +34,7 @@ bin/
 /dist/
 /nbdist/
 /.nb-gradle/
-/fileInput
+/fileInput/
 
 ### VS Code ###
 .vscode/
