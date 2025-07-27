@@ -1,8 +1,7 @@
 package org.com;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class FileService {
 
@@ -12,21 +11,30 @@ public class FileService {
     private static final String ACTION_FILE  = "fileInput/action.txt";
 
 
-    public String getPostalCode() {
+    public Map<String, String> getPersonalDataSet() {
+        // Đọc dữ liệu từ file postalCode.txt
+        // Thứ tự của các trường trong file sẽ được ánh xạ vào một Map
+        List<String> personalInfoKey = new ArrayList<>(Arrays.asList("PostCode",
+                "familyName","givenName","phoneticFamilyName", "phoneticGivenName",
+                "street1","street2","phone", "birthday"));
+
+        Map<String, String> personalData = new HashMap<>();
+
         String filePath = "fileInput/postalCode.txt";
-        StringBuilder postalCode = new StringBuilder();
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
+            int lineNumber = 0;
             while ((line = reader.readLine()) != null) {
-                postalCode.append(line); // Append the line to form the postal code
+                personalData.put(personalInfoKey.get(lineNumber), line); // Store each line in the map
+                lineNumber++;
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());;
             return null; // Return null if an error occurs
         }
 
-        return postalCode.toString();
+        return personalData;
     }
 
     public String getActionFlag() {

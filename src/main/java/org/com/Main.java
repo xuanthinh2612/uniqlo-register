@@ -1,6 +1,7 @@
 package org.com;
 
 import java.util.List;
+import java.util.Map;
 
 public class Main {
     public static void main(String[] args) {
@@ -12,7 +13,7 @@ public class Main {
             System.exit(0); // Exit if no emails are found
         }
         // Đọc dữ liệu từ file
-        String postalCode = fileService.getPostalCode();
+        Map<String, String> personalData = fileService.getPersonalDataSet();
 
         SeleniumService seleniumService = new SeleniumService();
 
@@ -22,7 +23,7 @@ public class Main {
                 System.out.println("Email Empty! Skip !");
                 continue; // Skip registration if email is empty or null
             }
-            seleniumService.register(email, postalCode);
+            seleniumService.register(email, personalData);
         }
 
         fileService.moveProcessedEmails(emailList);
