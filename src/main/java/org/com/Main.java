@@ -119,19 +119,6 @@ public class Main {
         }
     }
 
-    public static WebDriver getWebDriver() {
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--start-maximized");
-        // Tắt các dấu hiệu cho thấy đang dùng automation
-        options.setExperimentalOption("excludeSwitches", List.of("enable-automation"));
-        options.setExperimentalOption("useAutomationExtension", false);
-        String userDataDir = "C:\\Users\\xuant\\AppData\\Local\\Google\\Chrome\\User Data"; // Windows
-        options.addArguments("--user-data-dir=" + userDataDir);
-        // Thiết lập đường dẫn đến chromedriver
-
-        return new ChromeDriver(options);
-    }
-
     public static WebDriver attachToChrome() {
         ChromeOptions options = new ChromeOptions();
         options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222"); // Cổng debug
