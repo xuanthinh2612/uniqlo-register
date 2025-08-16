@@ -64,8 +64,6 @@ public class SeleniumService {
 
             // 6. Điền ngày sinh
             WebElement birthday = driver.findElement(By.id("id-birthday"));
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", birthday);
-            Thread.sleep(600 + random.nextInt(500));
             birthday.click();
             birthday.sendKeys(personalDataSet.get("birthday"));
 
@@ -98,7 +96,6 @@ public class SeleniumService {
             Thread.sleep(1000 + random.nextInt(500));
             // cuộn xuống giả lập người dùng cuộn chuột
             humanFreeScroll();
-            humanFreeScroll();
 
             // 11. Click nút xác nhận (variant-primary, nhưng không có mt-spacing)
             WebElement confirmBtn = wait.until(ExpectedConditions.elementToBeClickable(
@@ -117,6 +114,7 @@ public class SeleniumService {
 
         } catch (Exception e) {
             System.out.println("Loi khi dang ky: " + e.getMessage());
+            System.exit(0);
         }
     }
 
@@ -200,13 +198,9 @@ public class SeleniumService {
             familyNameElement.sendKeys(familyName);
 
             WebElement givenNameElement = driver.findElement(By.id("id-givenName"));
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", givenNameElement);
-            Thread.sleep(600 + random.nextInt(500));
             givenNameElement.click();givenNameElement.sendKeys(givenName);
 
             WebElement phoneticFamilyNameElement = driver.findElement(By.id("id-phoneticFamilyName"));
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", phoneticFamilyNameElement);
-            Thread.sleep(600 + random.nextInt(500));
             phoneticFamilyNameElement.click();
             phoneticFamilyNameElement.sendKeys(phoneticFamilyName);
 
@@ -236,14 +230,10 @@ public class SeleniumService {
             street1Element.sendKeys(street1);
 
             WebElement street2Element = driver.findElement(By.id("id-street2"));
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", street2Element);
-            Thread.sleep(600 + random.nextInt(500));
             street2Element.click();
             street2Element.sendKeys(street2);
 
             WebElement phoneElement = driver.findElement(By.id("id-phone"));
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", phoneElement);
-            Thread.sleep(600 + random.nextInt(500));
             phoneElement.click();
             phoneElement.sendKeys(phone1);
 
@@ -287,14 +277,16 @@ public class SeleniumService {
             moveMouseLikeHuman(confirmPayBtn);
             confirmPayBtn.click();
 
+            Thread.sleep(3000 + random.nextInt(500));
+
             // Chuyển trang xác nhận thông tin
             // 17. Chờ 3s load trang xác nhận thông tin, cuộn xuống click nút Đặt hàng
             WebElement finalBtn = wait.until(ExpectedConditions.elementToBeClickable(
                     By.cssSelector("button.fr-ec-button.fr-ec-button--large.fr-ec-button--variant-primary.fr-ec-button--half-width" +
                             ".fr-ec-cursor-pointer.fr-ec-button-max-width-reset.fr-ec-text-transform-all-caps.fr-ec-button--ec-renewal")));
-            Thread.sleep(1000 + random.nextInt(500));
+
             ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", finalBtn);
-            Thread.sleep(1500 + random.nextInt(500));
+            Thread.sleep(1000 + random.nextInt(500));
             moveMouseLikeHuman(finalBtn);
             finalBtn.click();
 
@@ -327,13 +319,16 @@ public class SeleniumService {
             logoutBtn.click();
 
             // Chờ 1 giây để chắc chắn đã đăng xuất
-            Thread.sleep(1500 + new Random().nextInt(500));
+            Thread.sleep(1000 + new Random().nextInt(500));
         } catch (Exception e) {
             System.out.println("Loi khi dang xuat: " + e.getMessage());
         }
     }
 
-    public void moveMouseLikeHuman(WebElement element) throws Exception {
+    public void addProductToCart(WebDriver driver) {
+
+    }
+    private void moveMouseLikeHuman(WebElement element) throws Exception {
         Random random = new Random();
         Robot robot = new Robot();
 
@@ -378,7 +373,7 @@ public class SeleniumService {
         Thread.sleep(300 + random.nextInt(200));
     }
 
-    public Point getElementScreenPosition(WebElement oldElement) {
+    private Point getElementScreenPosition(WebElement oldElement) {
         WebElement element = refreshElement(oldElement);
 
         JavascriptExecutor js = (JavascriptExecutor) driver;
@@ -392,7 +387,7 @@ public class SeleniumService {
         return new Point(position.get("x").intValue(), position.get("y").intValue());
     }
 
-    public WebElement refreshElement(WebElement oldElement) {
+    private WebElement refreshElement(WebElement oldElement) {
 
         String id = oldElement.getAttribute("id");
 
@@ -403,7 +398,7 @@ public class SeleniumService {
         }
     }
 
-    public void smoothHumanScroll(int scrollAmount, int duration) {
+    private void smoothHumanScroll(int scrollAmount, int duration) {
         String script = """
                     const total = arguments[0];
                     const duration = arguments[1];
@@ -432,7 +427,7 @@ public class SeleniumService {
         }
     }
 
-    public void humanFreeScroll() throws InterruptedException {
+    private void humanFreeScroll() throws InterruptedException {
         int scrollAmount = 300 + new Random().nextInt(300);  // từ 300 đến 600px
         int duration = 500 + new Random().nextInt(100);      // từ 800ms đến 1500ms
         smoothHumanScroll(scrollAmount, duration);
