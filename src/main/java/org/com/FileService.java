@@ -16,7 +16,7 @@ public class FileService {
         // Thứ tự của các trường trong file sẽ được ánh xạ vào một Map
         List<String> personalInfoKey = new ArrayList<>(Arrays.asList("PostCode",
                 "familyName","givenName","phoneticFamilyName", "phoneticGivenName",
-                "street1","street2","phone", "birthday"));
+                "street1","street2","phone1","phone2", "birthday"));
 
         Map<String, String> personalData = new HashMap<>();
 
@@ -64,6 +64,20 @@ public class FileService {
         }
     }
 
+    public String getFirstEmail() {
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(EMAIL_LIST))) {
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                return line; // Append the line to form the postal code
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());;
+            return null; // Return null if an error occurs
+        }
+        return null;
+    }
 
     public List<String> getListEmail() {
         List<String> emailList = new ArrayList<>();
@@ -132,6 +146,5 @@ public class FileService {
             System.err.println("Loi ghi done list: " + e.getMessage());
         }
     }
-
 
 }
