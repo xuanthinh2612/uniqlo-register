@@ -12,8 +12,9 @@ public class Main {
     private static final int ORDER_NOT_READY = 0;
     private static final int LOGOUT_SYS = 2;
     private static final int ORDER_READY = 1;
+    private static final int ADD_PRODUCT_READY = 3;
 
-//    static WebDriver driver = getWebDriver();
+    //    static WebDriver driver = getWebDriver();
     static WebDriver driver = attachToChrome();
     static FileService fileService = new FileService();
     static SeleniumService seleniumService = new SeleniumService(driver);
@@ -30,24 +31,72 @@ public class Main {
                     System.out.println("Khong co Email nao trong file!!!");
                     break; // Exit if no emails are found
                 }
+                // 1. start register
                 seleniumService.register(email, personalData);
-                System.out.println("Hoan thanh dang ky!");
 
+                // 2. remove used email from the list
                 List<String> removedEmails = new ArrayList<>();
                 removedEmails.add(email);
                 fileService.moveProcessedEmails(removedEmails);
 
+                // 3. wait for user to add product to cart
+                waitForAddProductToCart(driver, seleniumService);
+
+                // 4. wait for user to start order
                 waitForStartOrder(driver, personalData);
+                // 5. wait for user to logout
                 waitForLogout(driver, seleniumService);
+
                 Thread.sleep(1000);
             }
 
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             System.exit(0);
             throw new RuntimeException(e);
         }
 
         System.exit(0);
+    }
+
+    public static void waitForAddProductToCart(WebDriver driver, SeleniumService seleniumService) {
+        // get list product details in one order from file
+        List<String> productDetails = fileService.getProductDetails();
+        while (true) {
+            // if productDetails is empty, exit the loop
+            // go to process order
+            if (productDetails == null || productDetails.isEmpty()) {
+                System.out.println("Khong co san pham nao trong file!!!");
+                break; // Exit if no products are found
+            }
+
+            try {
+                // if the browser is closed, exit the loop
+                if (driver.getWindowHandles().isEmpty()) {
+                    System.out.println("Trinh Duyet da bi dong! Quit.");
+                    driver.quit(); // đảm bảo tắt driver nếu chưa
+                    System.exit(0);
+                    break;
+                }
+
+                // Kiểm tra xem có thể tiến hành đặt hàng được chưa
+                int actionFlag = Integer.parseInt(fileService.getActionFlag());
+
+                if (actionFlag == ADD_PRODUCT_READY) {
+                    fileService.resetActionFlag();
+                    seleniumService.addOneProductToCart(driver, productDetails);
+                    fileService.removeFirstLineOfProductList();
+
+                    break; // Thoát vòng lặp sau khi đặt hàng thành công
+                }
+
+                Thread.sleep(3000); // chờ 3 giây rồi kiểm tra lại
+
+            } catch (Exception e) {
+                System.out.println("Trinh duyet da tat! Thoat chuong trinh.");
+                System.exit(0);
+                break;
+            }
+        }
     }
 
     public static void waitForStartOrder(WebDriver driver, Map<String, String> personalDataSet) {

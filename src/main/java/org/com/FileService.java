@@ -1,28 +1,32 @@
 package org.com;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 public class FileService {
 
     private static final int MAX_EMAIL_COUNT = 1;
     private static final String EMAIL_LIST = "fileInput/emailList.txt";
-    private static final String DONE_LIST  = "fileInput/doneList.txt";
-    private static final String ACTION_FILE  = "fileInput/action.txt";
+    private static final String DONE_LIST = "fileInput/doneList.txt";
+    private static final String ACTION_FILE = "fileInput/action.txt";
 
 
     public Map<String, String> getPersonalDataSet() {
         // Đọc dữ liệu từ file postalCode.txt
         // Thứ tự của các trường trong file sẽ được ánh xạ vào một Map
         List<String> personalInfoKey = new ArrayList<>(Arrays.asList("PostCode",
-                "familyName","givenName","phoneticFamilyName", "phoneticGivenName",
-                "street1","street2","phone1","phone2", "birthday"));
+                "familyName", "givenName", "phoneticFamilyName", "phoneticGivenName",
+                "street1", "street2", "phone1", "phone2", "birthday"));
 
         Map<String, String> personalData = new HashMap<>();
 
         String filePath = "fileInput/postalCode.txt";
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath, StandardCharsets.UTF_8))) {
             String line;
             int lineNumber = 0;
             while ((line = reader.readLine()) != null) {
@@ -30,7 +34,7 @@ public class FileService {
                 lineNumber++;
             }
         } catch (IOException e) {
-            System.out.println(e.getMessage());;
+            System.out.println(e.getMessage());
             return null; // Return null if an error occurs
         }
 
@@ -46,7 +50,7 @@ public class FileService {
                 actionCode.append(line); // Append the line to form the actionCode
             }
         } catch (IOException e) {
-            System.out.println(e.getMessage());;
+            System.out.println(e.getMessage());
             return null; // Return null if an error occurs
         }
 
@@ -64,6 +68,47 @@ public class FileService {
         }
     }
 
+    public List<String> getProductDetails() {
+
+        try (BufferedReader reader = new BufferedReader(new FileReader("fileInput/productsList.csv"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                return Arrays.asList(parts); // Return the first line as product details
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+            ;
+            return null; // Return null if an error occurs
+        }
+
+        return null; // Return null when no product details are found
+    }
+
+    public void removeFirstLineOfProductList() throws IOException {
+        String inputFile = "fileInput/productsList.csv";
+        String doneFile = "fileInput/productDoneList.csv";
+
+        // Đọc toàn bộ file productsList.csv
+        List<String> lines = Files.readAllLines(Paths.get(inputFile));
+
+        if (!lines.isEmpty()) {
+            // Lấy dòng đầu tiên
+            String firstLine = lines.get(0);
+
+            // Xóa dòng đầu tiên khỏi danh sách
+            lines.remove(0);
+
+            // Ghi đè lại file gốc (productsList.csv) với phần còn lại
+            Files.write(Paths.get(inputFile), lines);
+
+            // Append dòng đầu tiên vào file doneList.csv
+            Files.write(Paths.get(doneFile),
+                    Collections.singletonList(firstLine),
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        }
+    }
+
     public String getFirstEmail() {
 
         try (BufferedReader reader = new BufferedReader(new FileReader(EMAIL_LIST))) {
@@ -73,7 +118,8 @@ public class FileService {
                 return line; // Append the line to form the postal code
             }
         } catch (IOException e) {
-            System.out.println(e.getMessage());;
+            System.out.println(e.getMessage());
+            ;
             return null; // Return null if an error occurs
         }
         return null;
@@ -90,7 +136,8 @@ public class FileService {
                 count++; // Increment the counter
             }
         } catch (IOException e) {
-            System.out.println(e.getMessage());;
+            System.out.println(e.getMessage());
+            ;
             return null; // Return null if an error occurs
         }
         return emailList;

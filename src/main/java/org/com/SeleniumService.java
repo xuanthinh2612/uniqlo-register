@@ -118,6 +118,93 @@ public class SeleniumService {
         }
     }
 
+    public void addOneProductToCart(WebDriver driver, List<String> productsDetailList) {
+        for (int i = 0; i < productsDetailList.size(); i += 5) {
+            try {
+                String url = productsDetailList.get(i + 4);
+
+                String amountString = productsDetailList.get(i + 1);
+                int amount = amountString != null && !amountString.isEmpty() ? Integer.parseInt(amountString) : 1;  // Mặc định là 1 nếu không có số lượng
+
+                String size = productsDetailList.get(i + 2).toUpperCase();
+                String color = productsDetailList.get(i + 3).toUpperCase();
+                addOneProductToCartAction(driver, url, amount, size, color);
+            } catch (Exception e) {
+                System.out.println("Loi khi them san pham vao gio hang: " + e.getMessage());
+                System.exit(0);
+                // Nếu có lỗi, bỏ qua sản phẩm này và tiếp tục với sản phẩm tiếp theo
+            }
+        }
+    }
+
+    public void addOneProductToCartAction(WebDriver driver, String productUrl, int amount, String size, String color) throws Exception {
+        try {
+            driver.get(productUrl);
+            // 1. Chờ trang load hoàn toàn: đợi nút thêm vào giỏ hàng xuất hiện
+            By addToCartLocator = By.xpath("//button[contains(.,'カートに入れる')]");
+            wait.until(ExpectedConditions.visibilityOfElementLocated(addToCartLocator));
+            Thread.sleep(2000 + random.nextInt(500));
+
+            // 2. Click chọn màu
+            String colorXpath = "//button[@data-testid='ITOChip']//img[@alt='" + color + "']/ancestor::button";
+            WebElement colorButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(colorXpath)));
+            Thread.sleep(300 + random.nextInt(200));
+            moveMouseLikeHuman(colorButton);
+            colorButton.click();
+
+            // 3. Chọn Size
+            // Tìm button có text đúng size
+            String sizeXpath = "//button[@data-testid='ITOChip']//div[text()='" + size + "']/ancestor::button";
+            WebElement sizeButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(sizeXpath)));
+            Thread.sleep(300 + random.nextInt(200));
+            // Kiểm tra xem size có bị strike không
+            WebElement parentDiv = sizeButton.findElement(By.xpath("./parent::div")); // size-chip-wrapper
+            boolean isSoldOut = !parentDiv.findElements(By.className("strike")).isEmpty();
+
+            if (isSoldOut) {
+                throw new RuntimeException("Size " + size + " đã hết hàng!");
+            }
+
+            // Click chọn size
+            moveMouseLikeHuman(sizeButton);
+            sizeButton.click();
+
+            // 4. click thêm số lượng
+            // Lấy span hiển thị số lượng
+            WebElement quantitySpan = wait.until(ExpectedConditions.presenceOfElementLocated(
+                    By.cssSelector("span.counter__value")
+            ));
+            Thread.sleep(300 + random.nextInt(200));
+            int currentQuantity = Integer.parseInt(quantitySpan.getText().trim());
+
+            // Lấy nút tăng
+            WebElement increaseBtn = driver.findElement(By.xpath("//button[contains(@aria-label,'Increase')]"));
+
+            moveMouseLikeHuman(increaseBtn);
+            // Click tăng tới khi đủ số lượng
+            while (currentQuantity < amount) {
+                increaseBtn.click();
+                // Đợi 0.3s cho số lượng update
+                Thread.sleep(300 + random.nextInt(200));
+                currentQuantity = Integer.parseInt(quantitySpan.getText().trim());
+            }
+
+            // 3. Click nút thêm vào giỏ hàng
+            WebElement addToCartBtn = driver.findElement(By.xpath("//button[contains(.,'カートに入れる')]"));
+            Thread.sleep(300 + random.nextInt(200));
+            moveMouseLikeHuman(addToCartBtn);
+            addToCartBtn.click();
+
+            // 4. Chờ 1s để chắc chắn đã thêm vào giỏ hàng
+            Thread.sleep(2000 + random.nextInt(500));
+
+        } catch (Exception e) {
+            System.out.println("Loi khi them san pham vao gio hang: " + e.getMessage());
+            throw e;
+        }
+
+    }
+
     public void order(String familyName, String givenName, String phoneticFamilyName, String phoneticGivenName,
                       String street1, String street2, String phone1, String phone2) {
         try {
@@ -198,7 +285,8 @@ public class SeleniumService {
             familyNameElement.sendKeys(familyName);
 
             WebElement givenNameElement = driver.findElement(By.id("id-givenName"));
-            givenNameElement.click();givenNameElement.sendKeys(givenName);
+            givenNameElement.click();
+            givenNameElement.sendKeys(givenName);
 
             WebElement phoneticFamilyNameElement = driver.findElement(By.id("id-phoneticFamilyName"));
             phoneticFamilyNameElement.click();
@@ -277,7 +365,7 @@ public class SeleniumService {
             moveMouseLikeHuman(confirmPayBtn);
             confirmPayBtn.click();
 
-            Thread.sleep(3000 + random.nextInt(500));
+            Thread.sleep(2000 + random.nextInt(500));
 
             // Chuyển trang xác nhận thông tin
             // 17. Chờ 3s load trang xác nhận thông tin, cuộn xuống click nút Đặt hàng
@@ -304,6 +392,7 @@ public class SeleniumService {
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
+            System.exit(0);
         }
     }
 
@@ -325,9 +414,6 @@ public class SeleniumService {
         }
     }
 
-    public void addProductToCart(WebDriver driver) {
-
-    }
     private void moveMouseLikeHuman(WebElement element) throws Exception {
         Random random = new Random();
         Robot robot = new Robot();
