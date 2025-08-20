@@ -83,8 +83,8 @@ public class Main {
 
                 if (actionFlag == ADD_PRODUCT_READY) {
                     fileService.resetActionFlag();
-                    seleniumService.addOneProductToCart(driver, productDetails);
                     fileService.removeFirstLineOfProductList();
+                    seleniumService.addOneProductToCart(driver, productDetails);
 
                     break; // Thoát vòng lặp sau khi đặt hàng thành công
                 }
