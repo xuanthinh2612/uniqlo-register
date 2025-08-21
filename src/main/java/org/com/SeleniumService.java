@@ -25,7 +25,7 @@ public class SeleniumService {
         this.driver = driver;
 
         // Khởi tạo WebDriverWait với timeout 10s
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait = new WebDriverWait(driver, Duration.ofSeconds(20));
     }
 
     public void register(String email, Map<String, String> personalDataSet) {
