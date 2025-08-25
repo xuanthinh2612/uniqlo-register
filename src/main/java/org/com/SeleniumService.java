@@ -1,14 +1,14 @@
 package org.com;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.awt.*;
+import java.awt.Point;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -94,8 +94,6 @@ public class SeleniumService {
 
             // 10. Chờ 3s để chuyển trang
             Thread.sleep(1000 + random.nextInt(500));
-            // cuộn xuống giả lập người dùng cuộn chuột
-            humanFreeScroll();
 
             // 11. Click nút xác nhận (variant-primary, nhưng không có mt-spacing)
             WebElement confirmBtn = wait.until(ExpectedConditions.elementToBeClickable(
@@ -119,7 +117,7 @@ public class SeleniumService {
     }
 
     public void addOneProductToCart(WebDriver driver, List<String> productsDetailList) {
-        for (int i = 0; i < productsDetailList.size(); i += 5) {
+        for (int i = 0; i + 1 < productsDetailList.size(); i += 5) {
             try {
                 String url = productsDetailList.get(i + 4);
 
@@ -142,21 +140,19 @@ public class SeleniumService {
             driver.get(productUrl);
             // 1. Chờ trang load hoàn toàn: đợi nút thêm vào giỏ hàng xuất hiện
             By addToCartLocator = By.xpath("//button[contains(.,'カートに入れる')]");
-            wait.until(ExpectedConditions.visibilityOfElementLocated(addToCartLocator));
-            Thread.sleep(2000 + random.nextInt(500));
+            wait.until(ExpectedConditions.elementToBeClickable(addToCartLocator));
+            Thread.sleep(1000 + random.nextInt(500));
 
             // 2. Click chọn màu
             String colorXpath = "//button[@data-testid='ITOChip']//img[@alt='" + color + "']/ancestor::button";
             WebElement colorButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(colorXpath)));
-            Thread.sleep(300 + random.nextInt(200));
             moveMouseLikeHuman(colorButton);
             colorButton.click();
 
             // 3. Chọn Size
             // Tìm button có text đúng size
             String sizeXpath = "//button[@data-testid='ITOChip']//div[text()='" + size + "']/ancestor::button";
-            WebElement sizeButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(sizeXpath)));
-            Thread.sleep(300 + random.nextInt(200));
+            WebElement sizeButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(sizeXpath)));
             // Kiểm tra xem size có bị strike không
             WebElement parentDiv = sizeButton.findElement(By.xpath("./parent::div")); // size-chip-wrapper
             boolean isSoldOut = !parentDiv.findElements(By.className("strike")).isEmpty();
@@ -174,7 +170,6 @@ public class SeleniumService {
             WebElement quantitySpan = wait.until(ExpectedConditions.presenceOfElementLocated(
                     By.cssSelector("span.counter__value")
             ));
-            Thread.sleep(300 + random.nextInt(200));
             int currentQuantity = Integer.parseInt(quantitySpan.getText().trim());
 
             // Lấy nút tăng
@@ -191,7 +186,6 @@ public class SeleniumService {
 
             // 3. Click nút thêm vào giỏ hàng
             WebElement addToCartBtn = driver.findElement(By.xpath("//button[contains(.,'カートに入れる')]"));
-            Thread.sleep(300 + random.nextInt(200));
             moveMouseLikeHuman(addToCartBtn);
             addToCartBtn.click();
 
@@ -380,6 +374,210 @@ public class SeleniumService {
 
             // 18. Modal bật lên, click nút confirm cuối cùng (variant-primary normal transform normal)
 
+            WebElement finalConfirmBtn =
+                    wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button.fr-ec-button.fr-ec-button--large.fr-ec-button--variant-primary" +
+                            ".fr-ec-cursor-pointer.fr-ec-button-max-width-reset.fr-ec-text-transform-normal.fr-ec-button--ec-renewal")));
+
+            Thread.sleep(1000 + random.nextInt(500));
+
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", finalConfirmBtn);
+
+            System.out.println("Dat hang thanh cong! Hay thanh toan don hang sau do dong trinh duyet.");
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.exit(0);
+        }
+    }
+
+    public void orderToShop(String familyName, String givenName, String phoneticFamilyName, String phoneticGivenName,
+                      String street1, String street2, String phone1, String phone2, String storeName) {
+        try {
+            driver.get("https://www.uniqlo.com/jp/ja/cart");
+
+            // 2. Click open kupon select modal
+            List<WebElement> openModalBtns = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
+                    By.cssSelector("button.fr-ec-link-cell.fr-ec-link-cell__variant-large.fr-ec-cursor-pointer")));
+            Thread.sleep(500 + random.nextInt(500));
+
+            if (!openModalBtns.isEmpty()) {
+                WebElement openModalBtn = openModalBtns.get(0); // Lấy button đầu tiên
+                ((JavascriptExecutor) driver)
+                        .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", openModalBtn);
+                Thread.sleep(600 + random.nextInt(500));
+                wait.until(ExpectedConditions.elementToBeClickable(openModalBtn)); // Đảm bảo button sẵn sàng click
+                moveMouseLikeHuman(openModalBtn);
+                openModalBtn.click();
+            } else {
+                System.out.println("Khong tim thay button chon cupon.");
+                throw new RuntimeException("Khong tim thay button chon cupon.");
+            }
+
+            Thread.sleep(1000 + random.nextInt(500));
+
+            // 3. Click chọn kupon label for chứa text bắt đầu bằng 3017125618123-X
+            // Tìm label có attribute for chứa chuỗi này (phần sau có thể khác)
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("label[for^='3017125618123-X']")));
+            WebElement cupon = driver.findElement(By.cssSelector("label[for^='3017125618123-X']"));
+            moveMouseLikeHuman(cupon);
+            cupon.click();
+
+            // 4. Click OK xác nhận cupon
+            List<WebElement> buttons = driver.findElements(
+                    By.cssSelector("button.fr-ec-button.fr-ec-button--large.fr-ec-button--variant-primary" +
+                            ".fr-ec-cursor-pointer.fr-ec-button-max-width-reset.fr-ec-text-transform-all-caps.fr-ec-button--ec-renewal")
+            );
+
+            if (!buttons.isEmpty()) {
+                Thread.sleep(500 + random.nextInt(500));
+                buttons.get(1).click(); // Click button xác nhận khuyến mãi
+            }
+
+            Thread.sleep(1000 + random.nextInt(500));
+
+            // 5. Cuộn xuống và click nút đặt hàng (primary button lớn)
+            WebElement btn2 = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.cssSelector("button.fr-ec-button.fr-ec-button--large.fr-ec-button--variant-primary" +
+                            ".fr-ec-cursor-pointer.fr-ec-button-max-width-reset.fr-ec-text-transform-all-caps.fr-ec-button--ec-renewal")));
+            ((JavascriptExecutor) driver)
+                    .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", btn2);
+            Thread.sleep(600 + random.nextInt(500));
+            moveMouseLikeHuman(btn2);
+            btn2.click();
+
+            Thread.sleep(1000 + random.nextInt(1000));
+
+            // 6. click nút "Nhận hàng ở cửa hàng uniqlo"
+            By takeProductAtShop = By.xpath("//button[contains(.,'ユニクロ店舗受取り')]");
+            wait.until(ExpectedConditions.elementToBeClickable(takeProductAtShop));
+            Thread.sleep(300 + random.nextInt(300));
+
+            WebElement takeProductAtShopBtn = driver.findElement(takeProductAtShop);
+            moveMouseLikeHuman(takeProductAtShopBtn);
+            takeProductAtShopBtn.click();
+
+            Thread.sleep(1000 + random.nextInt(500));
+
+            // 7. Nhập thông tin địa chỉ shop input theo id
+
+            // copy text vào clipboard
+            StringSelection selection = new StringSelection(storeName);
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            clipboard.setContents(selection, null);
+
+            // click vào ô input
+            WebElement storeSearchInput = driver.findElement(By.id("storeSearch"));
+            moveMouseLikeHuman(storeSearchInput);
+            storeSearchInput.click();
+            storeSearchInput.sendKeys(Keys.CONTROL, "v"); // dán trực tiếp
+            // Nhấn Enter để tìm kiếm
+            storeSearchInput.sendKeys(Keys.ENTER);
+
+            // 8. Chờ 2s và click chọn shop
+            // chờ kết quả hiện ra
+            Thread.sleep(1000 + random.nextInt(500));
+            WebElement storeLabel = driver.findElement(
+                    By.xpath("//label[normalize-space(text())='" + storeName + "']")
+            );
+            storeLabel.click();
+
+            // 9. click nút "Nhận hàng ở cửa hàng đã chọn"
+            By takeProductAtShopConfirm = By.xpath("//button[contains(.,'選択した店舗で受取る')]");
+            wait.until(ExpectedConditions.elementToBeClickable(takeProductAtShopConfirm));
+            Thread.sleep(300 + random.nextInt(300));
+            WebElement takeProductAtShopConfirmBtn = driver.findElement(takeProductAtShopConfirm);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", takeProductAtShopConfirmBtn);
+            Thread.sleep(600 + random.nextInt(500));
+            moveMouseLikeHuman(takeProductAtShopConfirmBtn);
+            takeProductAtShopConfirmBtn.click();
+            Thread.sleep(1000 + random.nextInt(500));
+
+            // 10. Cuộn xuống, nhập thông tin vào các input theo id
+            WebElement familyNameElement = driver.findElement(By.id("id-familyName"));
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", familyNameElement);
+            Thread.sleep(600 + random.nextInt(500));
+            familyNameElement.click();
+            familyNameElement.sendKeys(familyName);
+
+            WebElement givenNameElement = driver.findElement(By.id("id-givenName"));
+            givenNameElement.click();
+            givenNameElement.sendKeys(givenName);
+
+            WebElement phoneticFamilyNameElement = driver.findElement(By.id("id-phoneticFamilyName"));
+            phoneticFamilyNameElement.click();
+            phoneticFamilyNameElement.sendKeys(phoneticFamilyName);
+
+            WebElement phoneticGivenNameElement = driver.findElement(By.id("id-phoneticGivenName"));
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", phoneticGivenNameElement);
+            Thread.sleep(600 + random.nextInt(500));
+            phoneticGivenNameElement.click();
+            phoneticGivenNameElement.sendKeys(phoneticGivenName);
+
+            // 11. Nhập số điện thoại
+            WebElement phoneElement = driver.findElement(By.id("id-phone"));
+            phoneElement.click();
+            phoneElement.sendKeys(phone1);
+
+            WebElement phone2Element = driver.findElement(By.id("id-mobilePhone"));
+            phone2Element.click();
+            phone2Element.sendKeys(phone2);
+
+            // 12. Click button "Xác nhận phương thức gửi hàng"
+            By confirmShipMethod = By.xpath("//button[contains(.,'配送方法を確定する')]");
+            WebElement confirmShipMethodBtn = driver.findElement(confirmShipMethod);
+            moveMouseLikeHuman(confirmShipMethodBtn);
+            confirmShipMethodBtn.click();
+            Thread.sleep(1000 + random.nextInt(500));
+
+            // 13. chọn button PAYPAY
+            WebElement paypayBtn = wait.until(ExpectedConditions.elementToBeClickable(By.id("PAYPAY")));
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", paypayBtn);
+            Thread.sleep(600 + random.nextInt(500));
+            moveMouseLikeHuman(paypayBtn);
+            paypayBtn.click();
+
+            // 14. Click nhập địa chỉ 郵便番号から住所入力
+            By addressInsert = By.xpath("//button[contains(.,'郵便番号から住所入力')]");
+            wait.until(ExpectedConditions.elementToBeClickable(addressInsert));
+            WebElement addressInsertButtons = driver.findElement(addressInsert);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", addressInsertButtons);
+            Thread.sleep(600 + random.nextInt(500));
+            addressInsertButtons.click();
+            Thread.sleep(1000 + random.nextInt(500));
+
+            // 15. Nhập địa chỉ
+            WebElement street1Element = driver.findElement(By.id("id-street1"));
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", street1Element);
+            Thread.sleep(600 + random.nextInt(500));
+            moveMouseLikeHuman(street1Element);
+            street1Element.click();
+            street1Element.sendKeys(street1);
+
+            WebElement street2Element = driver.findElement(By.id("id-street2"));
+            street2Element.click();
+            street2Element.sendKeys(street2);
+
+            // 16. Chờ click button お支払い方法を確定する
+            By confirmPaymentMethod = By.xpath("//button[contains(.,'お支払い方法を確定する')]");
+            wait.until(ExpectedConditions.elementToBeClickable(confirmPaymentMethod));
+            WebElement confirmPaymentMethodBtn = driver.findElement(confirmPaymentMethod);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", confirmPaymentMethodBtn);
+            Thread.sleep(600 + random.nextInt(500));
+            moveMouseLikeHuman(confirmPaymentMethodBtn);
+            confirmPaymentMethodBtn.click();
+            Thread.sleep(1000 + random.nextInt(500));
+
+            // 17. Click nút đặt hàng 注文する
+            By processOrder = By.xpath("//button[contains(.,'注文する')]");
+            wait.until(ExpectedConditions.elementToBeClickable(processOrder));
+            WebElement processOrderBtn = driver.findElement(processOrder);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", processOrderBtn);
+            Thread.sleep(600 + random.nextInt(500));
+            moveMouseLikeHuman(processOrderBtn);
+            processOrderBtn.click();
+            Thread.sleep(1000 + random.nextInt(500));
+
+            // 18. Modal bật lên, click nút confirm cuối cùng (variant-primary normal transform normal)
             WebElement finalConfirmBtn =
                     wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button.fr-ec-button.fr-ec-button--large.fr-ec-button--variant-primary" +
                             ".fr-ec-cursor-pointer.fr-ec-button-max-width-reset.fr-ec-text-transform-normal.fr-ec-button--ec-renewal")));

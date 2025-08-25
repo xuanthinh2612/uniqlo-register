@@ -63,14 +63,14 @@ public class FileService {
             // Overwrite the file content with the new flag value
             writer.write(newFlag);
             writer.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception ignored) {
+
         }
     }
 
     public List<String> getProductDetails() {
 
-        try (BufferedReader reader = new BufferedReader(new FileReader("fileInput/productsList.csv"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("fileInput/productsList.txt"))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
@@ -86,11 +86,11 @@ public class FileService {
     }
 
     public void removeFirstLineOfProductList() throws IOException {
-        String inputFile = "fileInput/productsList.csv";
-        String doneFile = "fileInput/productDoneList.csv";
+        String inputFile = "fileInput/productsList.txt";
+        String doneFile = "fileInput/productDoneList.txt";
 
-        // Đọc toàn bộ file productsList.csv
-        List<String> lines = Files.readAllLines(Paths.get(inputFile));
+        // Đọc toàn bộ file productsList.txt
+        List<String> lines = Files.readAllLines(Paths.get(inputFile), StandardCharsets.UTF_8);
 
         if (!lines.isEmpty()) {
             // Lấy dòng đầu tiên
@@ -99,10 +99,10 @@ public class FileService {
             // Xóa dòng đầu tiên khỏi danh sách
             lines.remove(0);
 
-            // Ghi đè lại file gốc (productsList.csv) với phần còn lại
+            // Ghi đè lại file gốc (productsList.txt) với phần còn lại
             Files.write(Paths.get(inputFile), lines);
 
-            // Append dòng đầu tiên vào file doneList.csv
+            // Append dòng đầu tiên vào file productsDoneList.txt
             Files.write(Paths.get(doneFile),
                     Collections.singletonList(firstLine),
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND);

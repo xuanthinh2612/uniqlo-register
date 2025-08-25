@@ -7,12 +7,16 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class Main {
     private static final int ORDER_NOT_READY = 0;
     private static final int LOGOUT_SYS = 2;
     private static final int ORDER_READY = 1;
     private static final int ADD_PRODUCT_READY = 3;
+    private static final int ORDER_TO_STOCK_TYPE = 1;
+    private static final int ORDER_TO_SHOP_TYPE = 2;
+    private static final int COLUMN_OF_ONE_PRODUCT = 5;
 
     //    static WebDriver driver = getWebDriver();
     static WebDriver driver = attachToChrome();
@@ -40,10 +44,10 @@ public class Main {
                 fileService.moveProcessedEmails(removedEmails);
 
                 // 3. wait for user to add product to cart
-                waitForAddProductToCart(driver, seleniumService);
+                String storeName = waitForAddProductToCart(driver, seleniumService);
 
                 // 4. wait for user to start order
-                waitForStartOrder(driver, personalData);
+                waitForStartOrder(driver, personalData, storeName);
                 // 5. wait for user to logout
                 waitForLogout(driver, seleniumService);
 
@@ -58,7 +62,7 @@ public class Main {
         System.exit(0);
     }
 
-    public static void waitForAddProductToCart(WebDriver driver, SeleniumService seleniumService) {
+    public static String waitForAddProductToCart(WebDriver driver, SeleniumService seleniumService) {
         // get list product details in one order from file
         List<String> productDetails = fileService.getProductDetails();
         while (true) {
@@ -86,7 +90,14 @@ public class Main {
                     fileService.removeFirstLineOfProductList();
                     seleniumService.addOneProductToCart(driver, productDetails);
 
-                    break; // Thoát vòng lặp sau khi đặt hàng thành công
+                    // Nếu đặt hàng đến cửa hàng, trả về tên cửa hàng
+                    int orderType = productDetails.size() % COLUMN_OF_ONE_PRODUCT == 0 ? ORDER_TO_STOCK_TYPE : ORDER_TO_SHOP_TYPE;
+                    if (orderType == ORDER_TO_SHOP_TYPE) {
+                        return productDetails.get(productDetails.size() - 1); // return store name
+                    } else {
+                        return null;
+                    }
+                    // Thoát vòng lặp sau khi đặt hàng thành công
                 }
 
                 Thread.sleep(3000); // chờ 3 giây rồi kiểm tra lại
@@ -94,12 +105,13 @@ public class Main {
             } catch (Exception e) {
                 System.out.println("Trinh duyet da tat! Thoat chuong trinh.");
                 System.exit(0);
-                break;
+                return null;
             }
         }
+        return null;
     }
 
-    public static void waitForStartOrder(WebDriver driver, Map<String, String> personalDataSet) {
+    public static void waitForStartOrder(WebDriver driver, Map<String, String> personalDataSet, String storeName) {
         while (true) {
             try {
                 if (driver.getWindowHandles().isEmpty()) {
@@ -125,7 +137,11 @@ public class Main {
                     String phone1 = personalDataSet.get("phone1");
                     String phone2 = personalDataSet.get("phone2");
 
-                    seleniumService.order(familyName, givenName, phoneticFamilyName, phoneticGivenName, street1, street2, phone1, phone2);
+                    if (!Objects.isNull(storeName)) {
+                        seleniumService.orderToShop(familyName, givenName, phoneticFamilyName, phoneticGivenName, street1, street2, phone1, phone2, storeName);
+                    } else {
+                        seleniumService.order(familyName, givenName, phoneticFamilyName, phoneticGivenName, street1, street2, phone1, phone2);
+                    }
                     break; // Thoát vòng lặp sau khi đặt hàng thành công
                 }
 
