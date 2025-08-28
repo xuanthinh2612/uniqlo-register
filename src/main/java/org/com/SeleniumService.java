@@ -137,10 +137,27 @@ public class SeleniumService {
 
     public void addOneProductToCartAction(WebDriver driver, String productUrl, int amount, String size, String color) throws Exception {
         try {
-            driver.get(productUrl);
+
+            int retryCount = 0;
+            int maxRetry = 5; // tránh reload vô hạn
             // 1. Chờ trang load hoàn toàn: đợi nút thêm vào giỏ hàng xuất hiện
             By addToCartLocator = By.xpath("//button[contains(.,'カートに入れる')]");
-            wait.until(ExpectedConditions.elementToBeClickable(addToCartLocator));
+            By registerForStockImport = By.xpath("//button[contains(.,'再入荷通知を登録する')]");
+
+            while (retryCount < maxRetry) {
+                try {
+                    driver.get(productUrl);
+                    // Chờ một trong hai nút
+                    wait.until(ExpectedConditions.or(
+                            ExpectedConditions.presenceOfElementLocated(addToCartLocator),
+                            ExpectedConditions.presenceOfElementLocated(registerForStockImport)));
+                    break;
+                } catch (TimeoutException e) {
+                    retryCount++;
+                    System.out.println("Không tìm thấy nút sau 20s. Reload lần " + retryCount + "...");
+                }
+            }
+
             Thread.sleep(1000 + random.nextInt(500));
 
             // 2. Click chọn màu
