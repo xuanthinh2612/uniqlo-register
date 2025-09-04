@@ -70,7 +70,7 @@ public class FileService {
 
     public List<String> getProductDetails() {
 
-        try (BufferedReader reader = new BufferedReader(new FileReader("fileInput/productsList.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("fileInput/productsList.txt", StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
