@@ -168,19 +168,21 @@ public class SeleniumService {
 
             // 3. Chọn Size
             // Tìm button có text đúng size
-            String sizeXpath = "//button[@data-testid='ITOChip']//div[text()='" + size + "']/ancestor::button";
-            WebElement sizeButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(sizeXpath)));
-            // Kiểm tra xem size có bị strike không
-            WebElement parentDiv = sizeButton.findElement(By.xpath("./parent::div")); // size-chip-wrapper
-            boolean isSoldOut = !parentDiv.findElements(By.className("strike")).isEmpty();
+            if (!size.isBlank()) {
+                String sizeXpath = "//button[@data-testid='ITOChip']//div[text()='" + size + "']/ancestor::button";
+                WebElement sizeButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(sizeXpath)));
+                // Kiểm tra xem size có bị strike không
+                WebElement parentDiv = sizeButton.findElement(By.xpath("./parent::div")); // size-chip-wrapper
+                boolean isSoldOut = !parentDiv.findElements(By.className("strike")).isEmpty();
 
-            if (isSoldOut) {
-                throw new RuntimeException("Size " + size + " đã hết hàng!");
+                if (isSoldOut) {
+                    throw new RuntimeException("Size " + size + " đã hết hàng!");
+                }
+
+                // Click chọn size
+                moveMouseLikeHuman(sizeButton);
+                sizeButton.click();
             }
-
-            // Click chọn size
-            moveMouseLikeHuman(sizeButton);
-            sizeButton.click();
 
             // 4. click thêm số lượng
             // Lấy span hiển thị số lượng
