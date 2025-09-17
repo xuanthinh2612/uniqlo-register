@@ -1,10 +1,7 @@
 package org.com;
 
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -18,8 +15,7 @@ public class Main {
     private static final int ORDER_TO_SHOP_TYPE = 2;
     private static final int COLUMN_OF_ONE_PRODUCT = 5;
 
-    //    static WebDriver driver = getWebDriver();
-    static WebDriver driver = attachToChrome();
+    static WebDriver driver = ChromeHelper.initChromeWithAttachedSelenium();
     static FileService fileService = new FileService();
     static SeleniumService seleniumService = new SeleniumService(driver);
 
@@ -38,11 +34,6 @@ public class Main {
                 // 1. start register
                 seleniumService.register(email, personalData);
 
-                // 2. remove used email from the list
-                List<String> removedEmails = new ArrayList<>();
-                removedEmails.add(email);
-                fileService.moveProcessedEmails(removedEmails);
-
                 // 3. wait for user to add product to cart
                 String storeName = waitForAddProductToCart(driver, seleniumService);
 
@@ -55,10 +46,12 @@ public class Main {
             }
 
         } catch (Exception e) {
+            ChromeHelper.releasePort();
+            System.out.println(e.getMessage());
             System.exit(0);
-            throw new RuntimeException(e);
         }
 
+        ChromeHelper.releasePort();
         System.exit(0);
     }
 
@@ -86,8 +79,7 @@ public class Main {
                 int actionFlag = Integer.parseInt(fileService.getActionFlag());
 
                 if (actionFlag == ADD_PRODUCT_READY) {
-                    fileService.resetActionFlag();
-                    fileService.removeFirstLineOfProductList();
+
                     seleniumService.addOneProductToCart(driver, productDetails);
 
                     // Nếu đặt hàng đến cửa hàng, trả về tên cửa hàng
@@ -103,7 +95,8 @@ public class Main {
                 Thread.sleep(3000); // chờ 3 giây rồi kiểm tra lại
 
             } catch (Exception e) {
-                System.out.println("Trinh duyet da tat! Thoat chuong trinh.");
+                ChromeHelper.releasePort();
+                System.out.println(e.getMessage());
                 System.exit(0);
                 return null;
             }
@@ -127,7 +120,6 @@ public class Main {
 
                 if (actionFlag == ORDER_READY) {
                     System.out.println("Bat dau dat hang...");
-                    fileService.resetActionFlag();
                     String familyName = personalDataSet.get("familyName");
                     String givenName = personalDataSet.get("givenName");
                     String phoneticFamilyName = personalDataSet.get("phoneticFamilyName");
@@ -148,7 +140,8 @@ public class Main {
                 Thread.sleep(3000); // chờ 3 giây rồi kiểm tra lại
 
             } catch (Exception e) {
-                System.out.println("Trinh duyet da tat! Thoat chuong trinh.");
+                ChromeHelper.releasePort();
+                System.out.println(e.getMessage());
                 System.exit(0);
                 break;
             }
@@ -165,11 +158,9 @@ public class Main {
                     break;
                 }
                 // Kiểm tra xem có thể tiến hành đặt hàng được chưa
-
                 int actionFlag = Integer.parseInt(fileService.getActionFlag());
 
                 if (actionFlag == LOGOUT_SYS) {
-                    fileService.resetActionFlag();
                     System.out.println("logout...");
                     seleniumService.logoutAccount(driver);
                     break;
@@ -177,18 +168,12 @@ public class Main {
                 Thread.sleep(3000); // chờ 3 giây rồi kiểm tra lại
 
             } catch (Exception e) {
-                System.out.println("Trinh duyet khong con hoat dong. Thoat");
+                ChromeHelper.releasePort();
+                System.out.println(e.getMessage());
                 System.exit(0);
                 break;
             }
         }
-    }
-
-    public static WebDriver attachToChrome() {
-        ChromeOptions options = new ChromeOptions();
-        options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222"); // Cổng debug
-
-        return new ChromeDriver(options);
     }
 
 }

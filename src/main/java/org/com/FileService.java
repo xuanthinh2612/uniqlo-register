@@ -7,12 +7,18 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 public class FileService {
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     private static final int MAX_EMAIL_COUNT = 1;
     private static final String EMAIL_LIST = "fileInput/emailList.txt";
     private static final String DONE_LIST = "fileInput/doneList.txt";
     private static final String ACTION_FILE = "fileInput/action.txt";
+    private static final String JSON_FILE = "fileInput/portUserProfileStatus.txt";
+    private static final int MAX_RETRIES = 5;
 
 
     public Map<String, String> getPersonalDataSet() {
@@ -57,96 +63,64 @@ public class FileService {
         return actionCode.toString().trim();
     }
 
-    public void resetActionFlag() {
-        String newFlag = "0";
-        try (FileWriter writer = new FileWriter(ACTION_FILE, false)) {
-            // Overwrite the file content with the new flag value
-            writer.write(newFlag);
-            writer.flush();
-        } catch (Exception ignored) {
-
-        }
-    }
-
     public List<String> getProductDetails() {
-
-        try (BufferedReader reader = new BufferedReader(new FileReader("fileInput/productsList.txt", StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                return Arrays.asList(parts); // Return the first line as product details
-            }
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-            ;
-            return null; // Return null if an error occurs
-        }
-
-        return null; // Return null when no product details are found
-    }
-
-    public void removeFirstLineOfProductList() throws IOException {
         String inputFile = "fileInput/productsList.txt";
         String doneFile = "fileInput/productDoneList.txt";
+        List<String> productDetails = new ArrayList<>();
 
-        // Đọc toàn bộ file productsList.txt
-        List<String> lines = Files.readAllLines(Paths.get(inputFile), StandardCharsets.UTF_8);
-
-        if (!lines.isEmpty()) {
-            // Lấy dòng đầu tiên
-            String firstLine = lines.get(0);
-
-            // Xóa dòng đầu tiên khỏi danh sách
-            lines.remove(0);
-
-            // Ghi đè lại file gốc (productsList.txt) với phần còn lại
-            Files.write(Paths.get(inputFile), lines);
-
-            // Append dòng đầu tiên vào file productsDoneList.txt
-            Files.write(Paths.get(doneFile),
-                    Collections.singletonList(firstLine),
-                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        int count = 0;
+        while (count < MAX_RETRIES) {
+            try {
+                Thread.sleep(1000);
+                // Đọc toàn bộ file productsList.txt
+                List<String> lines = Files.readAllLines(Paths.get(inputFile), StandardCharsets.UTF_8);
+                if (!lines.isEmpty()) {
+                    // Lấy dòng đầu tiên
+                    String firstLine = lines.get(0);
+                    productDetails = Arrays.asList(firstLine.split(","));
+                    // Xóa dòng đầu tiên khỏi danh sách
+                    lines.remove(0);
+                    // Ghi đè lại file gốc (productsList.txt) với phần còn lại
+                    Files.write(Paths.get(inputFile), lines);
+                    // Append dòng đầu tiên vào file productsDoneList.txt
+                    Files.write(Paths.get(doneFile),
+                            Collections.singletonList(firstLine),
+                            StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                }
+                break; // Thoát vòng lặp nếu thành công
+            } catch (Exception e) {
+                System.out.println("Loi khi doc file productsList.txt: " + e.getMessage() + "\n Thu lai lan: " + count);
+            }
+            count++;
         }
+        return productDetails;
     }
 
     public String getFirstEmail() {
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(EMAIL_LIST))) {
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                return line; // Append the line to form the postal code
+        String line = null;
+        int count = 0;
+        while (count < MAX_RETRIES) {
+            try {
+                Thread.sleep(1000);
+                List<String> lines = Files.readAllLines(Paths.get(EMAIL_LIST), StandardCharsets.UTF_8);
+                line = lines.get(0).trim();
+                // remove used email from the list
+                List<String> removedEmails = new ArrayList<>();
+                removedEmails.add(line);
+                moveProcessedEmails(removedEmails);
+                break;
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
             }
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-            ;
-            return null; // Return null if an error occurs
+            count++;
         }
-        return null;
-    }
-
-    public List<String> getListEmail() {
-        List<String> emailList = new ArrayList<>();
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(EMAIL_LIST))) {
-            String line;
-            int count = 0; // Initialize a counter to limit the number of emails read
-            while ((line = reader.readLine()) != null && count < MAX_EMAIL_COUNT) { // Read only the first 10 lines
-                emailList.add(line); // Append the line to form the postal code
-                count++; // Increment the counter
-            }
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-            ;
-            return null; // Return null if an error occurs
-        }
-        return emailList;
+        return line;
     }
 
     /**
      * Xóa các email đã xử lý khỏi emailList.txt và append chúng vào doneList.txt.
      */
-    public void moveProcessedEmails(List<String> processedEmails) {
+    public void moveProcessedEmails(List<String> processedEmails) throws Exception {
         List<String> remaining = new ArrayList<>();
 
         // 1. Đọc lại toàn bộ emailList, giữ lại những email không có trong processedEmails
@@ -162,8 +136,7 @@ public class FileService {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Loi doc email list: " + e.getMessage());
-            return;
+            throw new Exception(e.getMessage());
         }
 
         // 2. Ghi đè lại emailList.txt với danh sách remaining
@@ -176,8 +149,7 @@ public class FileService {
                 bw.newLine();
             }
         } catch (IOException e) {
-            System.err.println("Loi ghi de email list: " + e.getMessage());
-            return;
+            throw new Exception(e.getMessage());
         }
 
         // 3. Append processedEmails vào doneList.txt
@@ -190,8 +162,95 @@ public class FileService {
                 bwDone.newLine();
             }
         } catch (IOException e) {
-            System.err.println("Loi ghi done list: " + e.getMessage());
+            throw new Exception(e.getMessage());
         }
+    }
+
+    /**
+     * Tìm những port chưa dùng và user profile chưa dùng để khởi động Chrome
+     */
+    public HashMap<String, String> getAvailablePortAndUserProfile() {
+        int count = 0;
+        while (count < MAX_RETRIES) {
+            try {
+                Thread.sleep(1000);
+                ObjectNode node = getFirstPortProfileAvailable();
+                if (node != null) {
+                    HashMap<String, String> portAndProfile = new HashMap<>();
+                    String port = node.get("port").asText();
+                    String userProfile = node.get("userProfileDir").asText();
+                    portAndProfile.put("port", port);
+                    portAndProfile.put("userProfileDir", userProfile);
+                    return portAndProfile;
+                } else {
+                    System.out.println("Khong con port va profile nao available. Thu lai lan " + (count + 1) + " sau 5 giay.");
+                    Thread.sleep(5000); // Chờ 5 giây trước khi thử lại
+                }
+            } catch (Exception e) {
+                System.out.println("Exception khi lay port va profile available: " + e.getMessage() + "\n Thu lai lan: " + count);
+            }
+            count++;
+        }
+        return null;
+    }
+
+    /**
+     * Tìm port chưa dùng đầu tiên để khởi động Chrome
+     * Lấy profile available đầu tiên và set thành in_use
+     */
+    public ObjectNode getFirstPortProfileAvailable() throws IOException {
+        List<String> lines = Files.readAllLines(Paths.get(JSON_FILE));
+        List<String> updated = new ArrayList<>();
+        ObjectNode chosen = null;
+
+        for (String line : lines) {
+            ObjectNode node = (ObjectNode) mapper.readTree(line);
+            String status = node.get("status").asText();
+
+            if (chosen == null && "available".equals(status)) {
+                node.put("status", "in_use");
+                chosen = node;
+            }
+
+            updated.add(mapper.writeValueAsString(node));
+        }
+
+
+        Files.write(Paths.get(JSON_FILE), updated);
+        return chosen;
+    }
+
+    /**
+     * release sẽ reset port status thành available
+     * Release profile theo port -> chuyển in_use thành available
+     */
+    public void releasePortAndProfile(String port) {
+        int count = 0;
+        while (count < MAX_RETRIES) {
+            try {
+                Thread.sleep(1000);
+                List<String> lines = Files.readAllLines(Paths.get(JSON_FILE));
+                List<String> updated = new ArrayList<>();
+
+                for (String line : lines) {
+                    ObjectNode node = (ObjectNode) mapper.readTree(line);
+                    String currentPort = node.get("port").asText();
+
+                    if (currentPort.equals(port)) {
+                        node.put("status", "available");
+                    }
+                    updated.add(mapper.writeValueAsString(node));
+                }
+                Files.write(Paths.get(JSON_FILE), updated);
+                System.out.println("Đã release profile port " + port);
+                break;
+            } catch (IOException | InterruptedException e) {
+                System.out.println("Loi khi release port " + port + "va profile: " + e.getMessage() + "\n Thu lai lan: " + count);
+            }
+            count++;
+        }
+
+
     }
 
 }
