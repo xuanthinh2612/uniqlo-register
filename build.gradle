@@ -15,7 +15,7 @@ dependencies {
     // thêm thư viện jackson-databind để xử lý JSON
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
     implementation 'com.opencsv:opencsv:5.8'
-    implementation 'org.seleniumhq.selenium:selenium-java:4.31.0'
+    implementation 'org.seleniumhq.selenium:selenium-java:4.35.0'
     implementation 'org.junit.jupiter:junit-jupiter-engine:5.12.1'
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
