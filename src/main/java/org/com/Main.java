@@ -25,7 +25,10 @@ public class Main {
 
         try {
             while (true) {
+                // get first email from file
                 String email = fileService.getFirstEmail();
+                // get list product details in one order from file
+                List<String> productDetails = fileService.getProductDetails();
 
                 if (email == null) {
                     System.out.println("Khong co Email nao trong file!!!");
@@ -35,7 +38,7 @@ public class Main {
                 seleniumService.register(email, personalData);
 
                 // 3. wait for user to add product to cart
-                String storeName = waitForAddProductToCart(driver, seleniumService);
+                String storeName = waitForAddProductToCart(driver, seleniumService, productDetails);
 
                 // 4. wait for user to start order
                 waitForStartOrder(driver, personalData, storeName);
@@ -55,9 +58,7 @@ public class Main {
         System.exit(0);
     }
 
-    public static String waitForAddProductToCart(WebDriver driver, SeleniumService seleniumService) {
-        // get list product details in one order from file
-        List<String> productDetails = fileService.getProductDetails();
+    public static String waitForAddProductToCart(WebDriver driver, SeleniumService seleniumService, List<String> productDetails) {
         while (true) {
             // if productDetails is empty, exit the loop
             // go to process order
