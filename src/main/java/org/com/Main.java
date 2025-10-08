@@ -29,6 +29,8 @@ public class Main {
                 String email = fileService.getFirstEmail();
                 // get list product details in one order from file
                 List<String> productDetails = fileService.getProductDetails();
+                String productLink = productDetails.get(4); // index 4 la link san pham
+                seleniumService.setProductLink(productLink);
 
                 if (email == null) {
                     System.out.println("Khong co Email nao trong file!!!");
@@ -163,7 +165,7 @@ public class Main {
 
                 if (actionFlag == LOGOUT_SYS) {
                     System.out.println("logout...");
-                    seleniumService.logoutAccount(driver);
+                    seleniumService.logoutAccount();
                     break;
                 }
                 Thread.sleep(3000); // chờ 3 giây rồi kiểm tra lại

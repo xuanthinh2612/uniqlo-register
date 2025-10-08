@@ -48,14 +48,17 @@ public class GUSeleniumService {
             Thread.sleep(500 + random.nextInt(500));
             wait.until(ExpectedConditions.elementToBeClickable(loginBtn)); // Đảm bảo button sẵn sàng click
             clickElementByJs(loginBtn);
-            Thread.sleep(500 + random.nextInt(500));
+            Thread.sleep(2000 + random.nextInt(500));
 
             // 1. Click open kupon select modal
+            By openModalkupon2By = By.xpath("//button[contains(.,'クーポン')]");
+            WebElement openModalBtn2 = wait.until(ExpectedConditions.elementToBeClickable(openModalkupon2By));
+            Thread.sleep(500 + random.nextInt(500));
             ((JavascriptExecutor) driver)
-                    .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", openModalBtn);
+                    .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", openModalBtn2);
             Thread.sleep(600 + random.nextInt(500));
-            wait.until(ExpectedConditions.elementToBeClickable(openModalBtn)); // Đảm bảo button sẵn sàng click
-            clickElementByJs(openModalBtn);
+            wait.until(ExpectedConditions.elementToBeClickable(openModalBtn2)); // Đảm bảo button sẵn sàng click
+            clickElementByJs(openModalBtn2);
 
             Thread.sleep(1000 + random.nextInt(500));
 
@@ -225,14 +228,17 @@ public class GUSeleniumService {
             Thread.sleep(500 + random.nextInt(500));
             wait.until(ExpectedConditions.elementToBeClickable(loginBtn)); // Đảm bảo button sẵn sàng click
             clickElementByJs(loginBtn);
-            Thread.sleep(500 + random.nextInt(500));
+            Thread.sleep(2000 + random.nextInt(500));
 
             // 1. Click open kupon select modal
+            By openModalkupon2By = By.xpath("//button[contains(.,'クーポン')]");
+            WebElement openModalBtn2 = wait.until(ExpectedConditions.elementToBeClickable(openModalkupon2By));
+            Thread.sleep(500 + random.nextInt(500));
             ((JavascriptExecutor) driver)
-                    .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", openModalBtn);
+                    .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", openModalBtn2);
             Thread.sleep(600 + random.nextInt(500));
-            wait.until(ExpectedConditions.elementToBeClickable(openModalBtn)); // Đảm bảo button sẵn sàng click
-            clickElementByJs(openModalBtn);
+            wait.until(ExpectedConditions.elementToBeClickable(openModalBtn2)); // Đảm bảo button sẵn sàng click
+            clickElementByJs(openModalBtn2);
 
             Thread.sleep(1000 + random.nextInt(500));
 

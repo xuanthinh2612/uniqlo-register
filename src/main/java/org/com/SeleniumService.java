@@ -14,7 +14,7 @@ public class SeleniumService {
     private final WebDriver driver;
     private final WebDriverWait wait;
     private final Random random = new Random();
-    private final String link;
+    private String productLink = null;
 
     private final String UNIQLO_LINK = "https://www.uniqlo.com";
 
@@ -22,7 +22,6 @@ public class SeleniumService {
     private final GUSeleniumService guSeleniumService;
 
     public SeleniumService(WebDriver driver) {
-        this.link = "https://www.uniqlo.com";
         this.driver = driver;
         this.uniqloSeleniumService = new UniqloSeleniumService(driver);
         this.guSeleniumService = new GUSeleniumService(driver);
@@ -207,7 +206,7 @@ public class SeleniumService {
     public void order(String familyName, String givenName, String phoneticFamilyName, String phoneticGivenName,
                       String street1, String street2, String phone1, String phone2) throws Exception {
         try {
-            if (link.contains(UNIQLO_LINK)) {
+            if (productLink.contains(UNIQLO_LINK)) {
                 uniqloSeleniumService.order(familyName, givenName, phoneticFamilyName, phoneticGivenName,
                         street1, street2, phone1, phone2);
             } else {
@@ -224,7 +223,7 @@ public class SeleniumService {
     public void orderToShop(String familyName, String givenName, String phoneticFamilyName, String phoneticGivenName,
                             String street1, String street2, String phone1, String phone2, String storeName) throws Exception {
         try {
-            if (link.contains(UNIQLO_LINK)) {
+            if (productLink.contains(UNIQLO_LINK)) {
                 uniqloSeleniumService.orderToShop(familyName, givenName, phoneticFamilyName, phoneticGivenName,
                         street1, street2, phone1, phone2, storeName);
             } else {
@@ -239,9 +238,9 @@ public class SeleniumService {
 
     }
 
-    public void logoutAccount(WebDriver driver) throws Exception {
+    public void logoutAccount() throws Exception {
         try {
-            if (link.contains(UNIQLO_LINK)) {
+            if (productLink.contains(UNIQLO_LINK)) {
                 uniqloSeleniumService.logoutAccount();
             } else {
                 guSeleniumService.logoutAccount();
@@ -297,21 +296,12 @@ public class SeleniumService {
         ((JavascriptExecutor) driver).executeScript(script, element, value);
     }
 
-    public void sendKeyEnterByJs(WebElement element) {
-        JavascriptExecutor js = (JavascriptExecutor) driver;
-        // Cách 1: Gọi trực tiếp keydown/keyup cho Enter
-        js.executeScript(
-                "var input = arguments[0];" +
-                        "input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', keyCode: 13, which: 13, bubbles: true}));" +
-                        "input.dispatchEvent(new KeyboardEvent('keypress', {key: 'Enter', keyCode: 13, which: 13, bubbles: true}));" +
-                        "input.dispatchEvent(new KeyboardEvent('keyup', {key: 'Enter', keyCode: 13, which: 13, bubbles: true}));" +
-                        "input.form && input.form.dispatchEvent(new Event('submit', {bubbles:true,cancelable:true}));",
-                element
-        );
-    }
-
     public void clickElementByJs(WebElement element) {
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+    }
+
+    public void setProductLink(String productLink) {
+        this.productLink = productLink;
     }
 
 }
