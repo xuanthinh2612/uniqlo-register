@@ -41,32 +41,11 @@ public class GUSeleniumService {
 
             Thread.sleep(1000 + random.nextInt(500));
 
-            // 2. Click chọn kupon label for chứa text bắt đầu bằng 3019379320593-X
+            // 2. Click chọn kupon label for chứa text GUバースデークーポン
             // Tìm label có attribute for chứa chuỗi này (phần sau có thể khác)
-            By loginBtnBy = By.xpath("//button[contains(.,'ログイン')]");
-            WebElement loginBtn = wait.until(ExpectedConditions.elementToBeClickable(loginBtnBy));
-            Thread.sleep(500 + random.nextInt(500));
-            wait.until(ExpectedConditions.elementToBeClickable(loginBtn)); // Đảm bảo button sẵn sàng click
-            clickElementByJs(loginBtn);
-            Thread.sleep(2000 + random.nextInt(500));
-
-            // 1. Click open kupon select modal
-            By openModalkupon2By = By.xpath("//button[contains(.,'クーポン')]");
-            WebElement openModalBtn2 = wait.until(ExpectedConditions.elementToBeClickable(openModalkupon2By));
-            Thread.sleep(500 + random.nextInt(500));
-            ((JavascriptExecutor) driver)
-                    .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", openModalBtn2);
-            Thread.sleep(600 + random.nextInt(500));
-            wait.until(ExpectedConditions.elementToBeClickable(openModalBtn2)); // Đảm bảo button sẵn sàng click
-            clickElementByJs(openModalBtn2);
-
-            Thread.sleep(1000 + random.nextInt(500));
-
-            // 2. Click chọn kupon label for chứa text bắt đầu bằng 3607596766227-X
-            // Tìm label có attribute for chứa chuỗi này (phần sau có thể khác)
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("label[for^='3607596766227-X']")));
-            WebElement cupon = driver.findElement(By.cssSelector("label[for^='3607596766227-X']"));
-            clickElementByJs(cupon);
+            By kuponBirthDayBy = By.xpath("//label[contains(text(),'GUバースデークーポン')]");
+            WebElement kuponBirthDay = wait.until(ExpectedConditions.elementToBeClickable(kuponBirthDayBy));
+            clickElementByJs(kuponBirthDay);
 
             // 3. Click OK xác nhận cupon
             By kuponConfirmBy = By.xpath("//button[contains(.,'適用')]");
@@ -220,13 +199,14 @@ public class GUSeleniumService {
             clickElementByJs(openModalKuponBtn);
             Thread.sleep(1000 + random.nextInt(500));
 
-            // 2. Click chọn kupon label for chứa text bắt đầu bằng 3607596766227-X
+            // 2. Click chọn kupon label for chứa text 'GUオンラインストアウェルカムクーポン'
             // Tìm label có attribute for chứa chuỗi này (phần sau có thể khác)
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("label[for^='3607596766227-X']")));
-            WebElement cupon = driver.findElement(By.cssSelector("label[for^='3607596766227-X']"));
-            clickElementByJs(cupon);
+            By kuponWelcomeBy = By.xpath("//label[contains(text(),'GUオンラインストアウェルカムクーポン')]");
 
-            // 3. Click OK xác nhận cupon
+            WebElement cuponWelcome = wait.until(ExpectedConditions.elementToBeClickable(kuponWelcomeBy));
+            clickElementByJs(cuponWelcome);
+
+            // 3. Click OK xác nhận cuponWelcome
             By kuponConfirmBy = By.xpath("//button[contains(.,'適用')]");
             WebElement kuponConfirmBtn = driver.findElement(kuponConfirmBy);
             Thread.sleep(500 + random.nextInt(500));
@@ -387,24 +367,19 @@ public class GUSeleniumService {
             // Tìm và click nút đăng xuất gu
             By guLogoutBtnBy = By.xpath("//button[contains(.,'ログアウト')]");
             WebElement guLogoutBtn = wait.until(ExpectedConditions.elementToBeClickable(guLogoutBtnBy));
-            // Chờ trang đăng ký tải xong
-            Thread.sleep(500 + new Random().nextInt(500));
             clickElementByJs(guLogoutBtn);
             Thread.sleep(500 + new Random().nextInt(500));
             // sau khi click đăng xuất, click popup xác nhận logout
             WebElement finalConfirmLogoutBtn =
                     wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button.fr-ec-button.fr-ec-button--large.fr-ec-button--variant-primary.fr-ec-cursor-pointer.fr-ec-button-max-width-reset.fr-ec-text-transform-all-caps.fr-ec-button--ec-renewal")));
-            Thread.sleep(1000 + random.nextInt(500));
             clickElementByJs(finalConfirmLogoutBtn);
             // Chờ 1 giây để chắc chắn đã đăng xuất
-            Thread.sleep(1000 + new Random().nextInt(500));
+            Thread.sleep(500 + new Random().nextInt(500));
 
             // logout uniqlo
             driver.get("https://www.uniqlo.com/jp/ja/account/registry");
             By uniqloLogoutBtnBy = By.xpath("//button[contains(.,'ログアウト')]");
             WebElement uniqloLogoutBtn = wait.until(ExpectedConditions.elementToBeClickable(uniqloLogoutBtnBy));
-            // Chờ trang đăng ký tải xong
-            Thread.sleep(500 + new Random().nextInt(500));
             clickElementByJs(uniqloLogoutBtn);
             // Chờ 1 giây để chắc chắn đã đăng xuất
             Thread.sleep(1000 + new Random().nextInt(500));
