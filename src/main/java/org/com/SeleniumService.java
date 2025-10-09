@@ -107,6 +107,12 @@ public class SeleniumService {
     }
 
     public void addOneProductToCart(WebDriver driver, List<String> productsDetailList) throws Exception {
+        // check if gu page then login
+        if (!productLink.contains(UNIQLO_LINK)) {
+            driver.get("https://www.gu-global.com/jp/ja/member");
+            Thread.sleep(1000 + random.nextInt(500));
+        }
+
         for (int i = 0; i + 1 < productsDetailList.size(); i += 5) {
             try {
                 String url = productsDetailList.get(i + 4);

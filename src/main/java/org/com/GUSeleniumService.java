@@ -211,35 +211,13 @@ public class GUSeleniumService {
 
             // 1. Click open kupon select modal
             By openModalkuponBy = By.xpath("//button[contains(.,'クーポン')]");
-            WebElement openModalBtn = wait.until(ExpectedConditions.elementToBeClickable(openModalkuponBy));
+            WebElement openModalKuponBtn = wait.until(ExpectedConditions.elementToBeClickable(openModalkuponBy));
             Thread.sleep(500 + random.nextInt(500));
             ((JavascriptExecutor) driver)
-                    .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", openModalBtn);
+                    .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", openModalKuponBtn);
             Thread.sleep(600 + random.nextInt(500));
-            wait.until(ExpectedConditions.elementToBeClickable(openModalBtn)); // Đảm bảo button sẵn sàng click
-            clickElementByJs(openModalBtn);
-
-            Thread.sleep(1000 + random.nextInt(500));
-
-            // 2. Click chọn kupon label for chứa text bắt đầu bằng 3019379320593-X
-            // Tìm label có attribute for chứa chuỗi này (phần sau có thể khác)
-            By loginBtnBy = By.xpath("//button[contains(.,'ログイン')]");
-            WebElement loginBtn = wait.until(ExpectedConditions.elementToBeClickable(loginBtnBy));
-            Thread.sleep(500 + random.nextInt(500));
-            wait.until(ExpectedConditions.elementToBeClickable(loginBtn)); // Đảm bảo button sẵn sàng click
-            clickElementByJs(loginBtn);
-            Thread.sleep(2000 + random.nextInt(500));
-
-            // 1. Click open kupon select modal
-            By openModalkupon2By = By.xpath("//button[contains(.,'クーポン')]");
-            WebElement openModalBtn2 = wait.until(ExpectedConditions.elementToBeClickable(openModalkupon2By));
-            Thread.sleep(500 + random.nextInt(500));
-            ((JavascriptExecutor) driver)
-                    .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", openModalBtn2);
-            Thread.sleep(600 + random.nextInt(500));
-            wait.until(ExpectedConditions.elementToBeClickable(openModalBtn2)); // Đảm bảo button sẵn sàng click
-            clickElementByJs(openModalBtn2);
-
+            wait.until(ExpectedConditions.elementToBeClickable(openModalKuponBtn)); // Đảm bảo button sẵn sàng click
+            clickElementByJs(openModalKuponBtn);
             Thread.sleep(1000 + random.nextInt(500));
 
             // 2. Click chọn kupon label for chứa text bắt đầu bằng 3607596766227-X
@@ -290,7 +268,7 @@ public class GUSeleniumService {
             // chờ kết quả hiện ra
             Thread.sleep(1000 + random.nextInt(500));
             WebElement storeLabel = driver.findElement(
-                    By.xpath("//label[normalize-space(text())='" + storeName + "']")
+                    By.xpath("//label[contains(text(),'" + storeName + "')]")
             );
             clickElementByJs(storeLabel);
 
