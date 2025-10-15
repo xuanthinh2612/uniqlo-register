@@ -106,6 +106,43 @@ public class SeleniumService {
 
     }
 
+    public void insertCodeToVerifyEmail(String email) throws Exception {
+        // get code from emailAndCode file
+        String code;
+
+        do {
+            code = FileService.getCodeFromFile(email);
+            Thread.sleep(3000);
+        } while (code == null || code.isEmpty());
+
+        try {
+            // 1. Chờ input code xuất hiện
+            By codeInputBy = By.id("id-verificationCode");
+            WebElement codeInput = wait.until(ExpectedConditions.visibilityOfElementLocated(codeInputBy));
+            Thread.sleep(1000 + random.nextInt(500));
+
+            // 2. Điền code
+            clickElementByJs(codeInput);
+            sendKeyByJs(codeInput, code);
+
+            // 3. Click nút xác nhận (variant-primary, nhưng không có mt-spacing)
+            By confirmBtnBy = By.xpath("//button[contains(.,'次へ')]");
+            WebElement confirmBtn = wait.until(ExpectedConditions.elementToBeClickable(confirmBtnBy));
+            ((JavascriptExecutor) driver)
+                    .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", confirmBtn);
+            Thread.sleep(600 + random.nextInt(500));
+
+            clickElementByJs(confirmBtn);
+
+            // Hoàn thành
+            System.out.println("Xac thuc email thanh cong! Vui long dat hang.");
+
+        } catch (Exception e) {
+            throw new Exception("Loi khi xac thuc email: " + e.getMessage());
+        }
+
+    }
+
     public void addOneProductToCart(WebDriver driver, List<String> productsDetailList) throws Exception {
         // check if gu page then login
         if (!productLink.contains(UNIQLO_LINK)) {
@@ -127,6 +164,8 @@ public class SeleniumService {
                 throw new Exception("Loi khi them san pham vao gio hang: " + e.getMessage());
             }
         }
+
+        System.out.println("Da them tat ca san pham vao gio hang. Vui long kiem tra lai gio hang va dat hang.");
 
     }
 

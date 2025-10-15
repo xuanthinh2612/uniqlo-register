@@ -7,6 +7,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 
+import java.nio.file.*;
+import java.util.regex.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -19,6 +22,7 @@ public class FileService {
     private static final String ACTION_FILE = "fileInput/action.txt";
     private static final String JSON_FILE = "fileInput/portUserProfileStatus.txt";
     private static final int MAX_RETRIES = 5;
+    private static final String EMAIL_AND_CODE_FILE = "fileInput/emailsAndCode.txt"; // file chứa đoạn text bạn nói
 
 
     public Map<String, String> getPersonalDataSet() {
@@ -253,4 +257,33 @@ public class FileService {
 
     }
 
+    // Đọc file, trích xuất email:code, rồi tìm code theo email
+    public static String getCodeFromFile(String emailToFind) {
+        try {
+            // Đọc toàn bộ nội dung file
+            String text = Files.readString(Path.of(EMAIL_AND_CODE_FILE));
+
+            // Regex tương tự bản Python
+            Pattern pattern = Pattern.compile("to\\s+([\\w+@.]+)\\s+.*?認証コード：\\s*(\\d+)", Pattern.DOTALL);
+            Matcher matcher = pattern.matcher(text);
+
+            // Map lưu email:code
+            Map<String, String> resultMap = new HashMap<>();
+
+            // Duyệt các match
+            while (matcher.find()) {
+                String email = matcher.group(1).trim() + "@gmail.com";
+                String code = matcher.group(2).trim();
+                resultMap.put(email, code);
+            }
+
+            // Trả về code tương ứng email truyền vào
+            return resultMap.getOrDefault(emailToFind, null);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
 }

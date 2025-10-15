@@ -39,6 +39,9 @@ public class Main {
                 // 1. start register
                 seleniumService.register(email, personalData);
 
+                // 2. wait for user to verify email and login
+                seleniumService.insertCodeToVerifyEmail(email);
+
                 // 3. wait for user to add product to cart
                 String storeName = waitForAddProductToCart(driver, seleniumService, productDetails);
 
