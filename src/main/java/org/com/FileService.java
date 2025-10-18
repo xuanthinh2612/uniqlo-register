@@ -254,36 +254,27 @@ public class FileService {
             count++;
         }
 
-
     }
 
     // Đọc file, trích xuất email:code, rồi tìm code theo email
-    public static String getCodeFromFile(String emailToFind) {
-        try {
-            // Đọc toàn bộ nội dung file
-            String text = Files.readString(Path.of(EMAIL_AND_CODE_FILE));
+    public static String getCodeFromFile(String emailToFind) throws Exception {
+        // Đọc toàn bộ nội dung file
+        String text = Files.readString(Path.of(EMAIL_AND_CODE_FILE)).toLowerCase();
 
-            // Regex tương tự bản Python
-            Pattern pattern = Pattern.compile("to\\s+([\\w+@.]+)\\s+.*?認証コード：\\s*(\\d+)", Pattern.DOTALL);
-            Matcher matcher = pattern.matcher(text);
+        // Regex tương tự bản Python
+        Pattern pattern = Pattern.compile("(?:to|đến)\\s+([\\w+@.]+)\\s+.*?認証コード：\\s*(\\d+)", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(text);
 
-            // Map lưu email:code
-            Map<String, String> resultMap = new HashMap<>();
+        // Map lưu email:code
+        Map<String, String> resultMap = new HashMap<>();
 
-            // Duyệt các match
-            while (matcher.find()) {
-                String email = matcher.group(1).trim() + "@gmail.com";
-                String code = matcher.group(2).trim();
-                resultMap.put(email, code);
-            }
-
-            // Trả về code tương ứng email truyền vào
-            return resultMap.getOrDefault(emailToFind, null);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+        // Duyệt các match
+        while (matcher.find()) {
+            String email = matcher.group(1).trim().toLowerCase() + "@gmail.com";
+            String code = matcher.group(2).trim().toLowerCase();
+            resultMap.put(email, code);
         }
+        // Trả về code tương ứng email truyền vào
+        return resultMap.getOrDefault(emailToFind, null);
     }
-    
 }

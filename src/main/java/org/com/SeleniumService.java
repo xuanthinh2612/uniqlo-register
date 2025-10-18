@@ -109,13 +109,16 @@ public class SeleniumService {
     public void insertCodeToVerifyEmail(String email) throws Exception {
         // get code from emailAndCode file
         String code;
-
-        do {
-            code = FileService.getCodeFromFile(email);
-            Thread.sleep(3000);
-        } while (code == null || code.isEmpty());
-
         try {
+            do {
+                code = FileService.getCodeFromFile(email);
+                // if the browser is closed, exit the loop
+                if (driver.getWindowHandles().isEmpty()) {
+                    driver.quit(); // đảm bảo tắt driver nếu chưa
+                }
+                Thread.sleep(3000);
+            } while (code == null || code.isEmpty());
+
             // 1. Chờ input code xuất hiện
             By codeInputBy = By.id("id-verificationCode");
             WebElement codeInput = wait.until(ExpectedConditions.visibilityOfElementLocated(codeInputBy));
