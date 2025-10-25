@@ -260,6 +260,7 @@ public class FileService {
     public static String getCodeFromFile(String emailToFind) throws Exception {
         // Đọc toàn bộ nội dung file
         String text = Files.readString(Path.of(EMAIL_AND_CODE_FILE)).toLowerCase();
+        emailToFind = emailToFind.split("@")[0];
 
         // Regex tương tự bản Python
         Pattern pattern = Pattern.compile("(?:to|đến)\\s+([\\w+@.]+)\\s+.*?認証コード：\\s*(\\d+)", Pattern.DOTALL);
@@ -270,7 +271,7 @@ public class FileService {
 
         // Duyệt các match
         while (matcher.find()) {
-            String email = matcher.group(1).trim().toLowerCase() + "@gmail.com";
+            String email = matcher.group(1).trim().toLowerCase();
             String code = matcher.group(2).trim().toLowerCase();
             resultMap.put(email, code);
         }

@@ -43,9 +43,9 @@ public class SeleniumService {
             clickElementByJs(emailInput);
             sendKeyByJs(emailInput, email);
 
-            WebElement emailConfirm = driver.findElement(By.id("id-emailConfirm"));
-            clickElementByJs(emailConfirm);
-            sendKeyByJs(emailConfirm, email);
+//            WebElement emailConfirm = driver.findElement(By.id("id-emailConfirm"));
+//            clickElementByJs(emailConfirm);
+//            sendKeyByJs(emailConfirm, email);
 
             // 4. Điền mật khẩu
             WebElement password = driver.findElement(By.id("id-password"));
@@ -70,32 +70,35 @@ public class SeleniumService {
             clickElementByJs(label);
 
             // 8. Click vào checkbox agreement
-            WebElement agreementLabel = wait.until(
-                    ExpectedConditions.elementToBeClickable(
-                            By.cssSelector("label[for='agreement']")
-                    )
-            );
-            ((JavascriptExecutor) driver)
-                    .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", agreementLabel);
-            Thread.sleep(600 + random.nextInt(500));
-            clickElementByJs(agreementLabel);
+//            WebElement agreementLabel = wait.until(
+//                    ExpectedConditions.elementToBeClickable(
+//                            By.cssSelector("label[for='agreement']")
+//                    )
+//            );
+//            ((JavascriptExecutor) driver)
+//                    .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", agreementLabel);
+//            Thread.sleep(600 + random.nextInt(500));
+//            clickElementByJs(agreementLabel);
 
             // 9. Click nút submit form (lớn)
-            By submitBtnBy = By.xpath("//button[contains(.,'確認画面へ')]");
+            By submitBtnBy = By.xpath("//button[contains(.,'会員登録する')]");
             WebElement submitBtn = driver.findElement(submitBtnBy);
+            ((JavascriptExecutor) driver)
+                    .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", submitBtn);
+            Thread.sleep(600 + random.nextInt(500));
             clickElementByJs(submitBtn);
 
             // 10. Chờ 3s để chuyển trang
-            Thread.sleep(1000 + random.nextInt(500));
+//            Thread.sleep(1000 + random.nextInt(500));
 
             // 11. Click nút xác nhận (variant-primary, nhưng không có mt-spacing)
-            By confirmInfoBtnBy = By.xpath("//button[contains(.,'認証コードを送る')]");
-            WebElement confirmInfoBtn = wait.until(ExpectedConditions.elementToBeClickable(confirmInfoBtnBy));
-
-            ((JavascriptExecutor) driver)
-                    .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", confirmInfoBtn);
-            Thread.sleep(600 + random.nextInt(500));
-            clickElementByJs(confirmInfoBtn);
+//            By confirmInfoBtnBy = By.xpath("//button[contains(.,'認証コードを送る')]");
+//            WebElement confirmInfoBtn = wait.until(ExpectedConditions.elementToBeClickable(confirmInfoBtnBy));
+//
+//            ((JavascriptExecutor) driver)
+//                    .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", confirmInfoBtn);
+//            Thread.sleep(600 + random.nextInt(500));
+//            clickElementByJs(confirmInfoBtn);
 
             // Hoàn thành
             System.out.println("Dang ky thanh cong! Vui long dat hang.");
@@ -129,7 +132,7 @@ public class SeleniumService {
             sendKeyByJs(codeInput, code);
 
             // 3. Click nút xác nhận (variant-primary, nhưng không có mt-spacing)
-            By confirmBtnBy = By.xpath("//button[contains(.,'次へ')]");
+            By confirmBtnBy = By.xpath("//button[contains(.,'認証する')]");
             WebElement confirmBtn = wait.until(ExpectedConditions.elementToBeClickable(confirmBtnBy));
             ((JavascriptExecutor) driver)
                     .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", confirmBtn);
