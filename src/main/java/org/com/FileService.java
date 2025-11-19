@@ -246,7 +246,7 @@ public class FileService {
                     updated.add(mapper.writeValueAsString(node));
                 }
                 Files.write(Paths.get(JSON_FILE), updated);
-                System.out.println("Đã release profile port " + port);
+                System.out.println("da release profile port " + port);
                 break;
             } catch (IOException | InterruptedException e) {
                 System.out.println("Loi khi release port " + port + "va profile: " + e.getMessage() + "\n Thu lai lan: " + count);
