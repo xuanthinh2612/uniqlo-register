@@ -149,7 +149,7 @@ public class SeleniumService {
 
     }
 
-    public void addOneProductToCart(WebDriver driver, List<String> productsDetailList) throws Exception {
+    public void addProductsToCart(WebDriver driver, List<String> productsDetailList) throws Exception {
         // check if gu page then login
         if (!productLink.contains(UNIQLO_LINK)) {
             driver.get("https://www.gu-global.com/jp/ja/member");

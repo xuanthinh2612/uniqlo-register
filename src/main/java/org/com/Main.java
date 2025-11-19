@@ -86,7 +86,7 @@ public class Main {
 
                 if (actionFlag == ADD_PRODUCT_READY) {
 
-                    seleniumService.addOneProductToCart(driver, productDetails);
+                    seleniumService.addProductsToCart(driver, productDetails);
 
                     // Nếu đặt hàng đến cửa hàng, trả về tên cửa hàng
                     int orderType = productDetails.size() % COLUMN_OF_ONE_PRODUCT == 0 ? ORDER_TO_STOCK_TYPE : ORDER_TO_SHOP_TYPE;
