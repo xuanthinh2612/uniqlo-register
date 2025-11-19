@@ -18,6 +18,7 @@ public class ChromeHelper {
         CURRENT_PORT = port;
         ChromeHelper.startChrome(port, userProfileDir);
         ChromeOptions options = new ChromeOptions();
+        options.addArguments("--remote-allow-origins=*");
         options.setExperimentalOption("debuggerAddress", "127.0.0.1:" + port); // Cổng debug
         return new ChromeDriver(options);
     }
@@ -39,7 +40,7 @@ public class ChromeHelper {
 
         try {
             processBuilder.start();
-            Thread.sleep(10000); // Chờ 10 giây để Chrome khởi động
+            Thread.sleep(3000); // Chờ 3 giây để Chrome khởi động
             System.out.println("Da khoi dong google chorme port: " + port + " userProfileDir: " + userProfileDir);
         } catch (Exception e) {
             System.out.println("Exception: Loi khi khoi dong chrome voi port: " + port + " userProfileDir: " + userProfileDir);
