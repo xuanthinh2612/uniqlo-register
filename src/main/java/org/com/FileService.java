@@ -19,13 +19,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class FileService {
     private static final ObjectMapper mapper = new ObjectMapper();
 
-//    private static final int MAX_EMAIL_COUNT = 1;
+    //    private static final int MAX_EMAIL_COUNT = 1;
     private static final String EMAIL_LIST = "fileInput/emailList.txt";
     private static final String DONE_LIST = "fileInput/doneList.txt";
     private static final String ACTION_FILE = "fileInput/action.txt";
     private static final String JSON_FILE = "fileInput/portUserProfileStatus.txt";
-    private static final int MAX_RETRIES = 10;
+    private static final int MAX_RETRIES = 5;
     private static final String EMAIL_AND_CODE_FILE = "fileInput/emailsAndCode.txt"; // file chứa đoạn text bạn nói
+    private static final String AVAILABLE = "available";
+    private static final String IN_USE = "in_use";
     String inputFile = "fileInput/productsList.txt";
     String doneFile = "fileInput/productDoneList.txt";
 
@@ -90,29 +92,48 @@ public class FileService {
                         inputPath,
                         StandardOpenOption.CREATE,
                         StandardOpenOption.READ,
-                        StandardOpenOption.WRITE
-                );
+                        StandardOpenOption.WRITE);
                      FileLock ignored = channel.lock()  // lock exclusive
                 ) {
+                    BufferedReader reader = new BufferedReader(
+                            Channels.newReader(channel, StandardCharsets.UTF_8));
 
-                    List<String> lines = Files.readAllLines(inputPath, StandardCharsets.UTF_8);
-
-                    if (!lines.isEmpty()) {
-                        String firstLine = lines.get(0);
-                        productDetails = Arrays.asList(firstLine.split(","));
-
-                        // Xóa dòng đầu và ghi phần còn lại
-                        lines.remove(0);
-                        Files.write(inputPath, lines, StandardCharsets.UTF_8);
-
-                        // Append vào done file
-                        Files.write(
-                                donePath,
-                                Collections.singletonList(firstLine + System.lineSeparator()),
-                                StandardOpenOption.CREATE,
-                                StandardOpenOption.APPEND
-                        );
+                    List<String> lines = new ArrayList<>();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        if (!line.trim().isEmpty()) {
+                            lines.add(line.trim());
+                        }
                     }
+
+                    if (lines.isEmpty()) return null;
+
+                    // Lấy email đầu
+                    String firstLine = lines.get(0);
+                    productDetails = Arrays.asList(firstLine.split(","));
+
+                    // Xóa dòng đầu và ghi phần còn lại
+                    lines.remove(0);
+
+                    // Ghi lại phần còn lại của file
+                    channel.truncate(0);                 // xóa toàn bộ file
+                    channel.position(0);                 // quay về đầu file
+                    BufferedWriter writer = new BufferedWriter(
+                            Channels.newWriter(channel, StandardCharsets.UTF_8));
+
+                    for (String e : lines) {
+                        writer.write(e);
+                        writer.newLine();
+                    }
+                    writer.flush();
+
+                    // Append vào done file
+                    Files.write(
+                            donePath,
+                            Collections.singletonList(firstLine + System.lineSeparator()),
+                            StandardOpenOption.CREATE,
+                            StandardOpenOption.APPEND
+                    );
 
                 } // channel và lock được auto close & release ở đây
 
@@ -241,25 +262,61 @@ public class FileService {
      * Tìm port chưa dùng đầu tiên để khởi động Chrome
      * Lấy profile available đầu tiên và set thành in_use
      */
-    public ObjectNode getFirstPortProfileAvailable() throws IOException {
-        List<String> lines = Files.readAllLines(Paths.get(JSON_FILE));
-        List<String> updated = new ArrayList<>();
+    public ObjectNode getFirstPortProfileAvailable() {
+        Path jsonPath = Paths.get(JSON_FILE);
         ObjectNode chosen = null;
 
-        for (String line : lines) {
-            ObjectNode node = (ObjectNode) mapper.readTree(line);
-            String status = node.get("status").asText();
+        try (FileChannel channel = FileChannel.open(
+                jsonPath,
+                StandardOpenOption.READ,
+                StandardOpenOption.WRITE);
+             // LOCK độc quyền (exclusive lock) để đảm bảo chỉ 1 process vào đây
+             FileLock ignored = channel.lock()
+        ) {
+            // Đọc nội dung file qua chính channel đang được lock
+            BufferedReader reader = new BufferedReader(
+                    Channels.newReader(channel, StandardCharsets.UTF_8));
 
-            if (chosen == null && "available".equals(status)) {
-                node.put("status", "in_use");
-                chosen = node;
+            List<String> lines = new ArrayList<>();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty()) {
+                    lines.add(line.trim());
+                }
             }
 
-            updated.add(mapper.writeValueAsString(node));
+            if (lines.isEmpty()) return null;
+
+            List<String> updated = new ArrayList<>();
+
+            for (String l : lines) {
+                ObjectNode node = (ObjectNode) mapper.readTree(l);
+                String status = node.get("status").asText();
+
+                if (chosen == null && AVAILABLE.equals(status)) {
+                    node.put("status", IN_USE);
+                    chosen = node;
+                }
+
+                updated.add(mapper.writeValueAsString(node));
+            }
+
+            // Ghi lại phần còn lại của file
+            channel.truncate(0);                 // xóa toàn bộ file
+            channel.position(0);                 // quay về đầu file
+            BufferedWriter writer = new BufferedWriter(
+                    Channels.newWriter(channel, StandardCharsets.UTF_8));
+
+            for (String e : updated) {
+                writer.write(e);
+                writer.newLine();
+            }
+            writer.flush();
+            System.out.println("dang lay port...");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
 
-
-        Files.write(Paths.get(JSON_FILE), updated);
         return chosen;
     }
 
@@ -268,26 +325,60 @@ public class FileService {
      * Release profile theo port -> chuyển in_use thành available
      */
     public void releasePortAndProfile(String port) {
+        Path jsonPath = Paths.get(JSON_FILE);
         int count = 0;
+
         while (count < MAX_RETRIES) {
-            try {
+            try (FileChannel channel = FileChannel.open(
+                    jsonPath,
+                    StandardOpenOption.READ,
+                    StandardOpenOption.WRITE);
+                 // LOCK độc quyền (exclusive lock) để đảm bảo chỉ 1 process vào đây
+                 FileLock ignored = channel.lock()
+            ) {
                 Thread.sleep(1000);
-                List<String> lines = Files.readAllLines(Paths.get(JSON_FILE));
+                // Đọc nội dung file qua chính channel đang được lock
+                BufferedReader reader = new BufferedReader(
+                        Channels.newReader(channel, StandardCharsets.UTF_8));
+
+                List<String> lines = new ArrayList<>();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (!line.trim().isEmpty()) {
+                        lines.add(line.trim());
+                    }
+                }
+
+                if (lines.isEmpty()) return;
+
                 List<String> updated = new ArrayList<>();
 
-                for (String line : lines) {
-                    ObjectNode node = (ObjectNode) mapper.readTree(line);
+                for (String l : lines) {
+                    ObjectNode node = (ObjectNode) mapper.readTree(l);
                     String currentPort = node.get("port").asText();
 
                     if (currentPort.equals(port)) {
-                        node.put("status", "available");
+                        node.put("status", AVAILABLE);
                     }
                     updated.add(mapper.writeValueAsString(node));
                 }
-                Files.write(Paths.get(JSON_FILE), updated);
+
+                // Ghi lại phần còn lại của file
+                channel.truncate(0);                 // xóa toàn bộ file
+                channel.position(0);                 // quay về đầu file
+                BufferedWriter writer = new BufferedWriter(
+                        Channels.newWriter(channel, StandardCharsets.UTF_8));
+
+                for (String e : updated) {
+                    writer.write(e);
+                    writer.newLine();
+                }
+                writer.flush();
+
                 System.out.println("da release profile port " + port);
                 break;
-            } catch (IOException | InterruptedException e) {
+
+            } catch (Exception e) {
                 System.out.println("Loi khi release port " + port + "va profile: " + e.getMessage() + "\n Thu lai lan: " + count);
             }
             count++;
