@@ -109,7 +109,7 @@ public class SeleniumService {
 
     }
 
-    public void insertCodeToVerifyEmail(String email) throws Exception {
+    public void insertCodeToVerifyEmail(String email) {
         // get code from emailAndCode file
         String code;
         try {
@@ -144,7 +144,7 @@ public class SeleniumService {
             System.out.println("Xac thuc email thanh cong! Vui long dat hang.");
 
         } catch (Exception e) {
-            throw new Exception("Loi khi xac thuc email: " + e.getMessage());
+            System.out.println("Loi khi xac thuc email: " + e.getMessage());
         }
 
     }
@@ -175,7 +175,7 @@ public class SeleniumService {
 
     }
 
-    public void addOneProductToCartAction(WebDriver driver, String productUrl, int amount, String size, String color) throws Exception {
+    public void addOneProductToCartAction(WebDriver driver, String productUrl, int amount, String size, String color) {
         try {
 
             int retryCount = 0;
@@ -249,13 +249,12 @@ public class SeleniumService {
 
         } catch (Exception e) {
             System.out.println("Loi khi them san pham vao gio hang: " + e.getMessage());
-            throw e;
         }
 
     }
 
     public void order(String familyName, String givenName, String phoneticFamilyName, String phoneticGivenName,
-                      String street1, String street2, String phone1, String phone2) throws Exception {
+                      String street1, String street2, String phone1, String phone2) {
         try {
             if (productLink.contains(UNIQLO_LINK)) {
                 uniqloSeleniumService.order(familyName, givenName, phoneticFamilyName, phoneticGivenName,
@@ -266,13 +265,13 @@ public class SeleniumService {
             }
 
         } catch (Exception e) {
-            throw new Exception("Loi khi thuc hien thanh toan don hang: " + e.getMessage());
+            System.out.println("Loi khi thuc hien thanh toan don hang: " + e.getMessage());
         }
 
     }
 
     public void orderToShop(String familyName, String givenName, String phoneticFamilyName, String phoneticGivenName,
-                            String street1, String street2, String phone1, String phone2, String storeName) throws Exception {
+                            String street1, String street2, String phone1, String phone2, String storeName) {
         try {
             if (productLink.contains(UNIQLO_LINK)) {
                 uniqloSeleniumService.orderToShop(familyName, givenName, phoneticFamilyName, phoneticGivenName,
@@ -283,8 +282,7 @@ public class SeleniumService {
 
             }
         } catch (Exception e) {
-            throw new Exception("Loi khi thuc hien thanh toan don hang: " + e.getMessage());
-
+            System.out.println("Loi khi thuc hien thanh toan don hang: " + e.getMessage());
         }
 
     }
@@ -299,7 +297,6 @@ public class SeleniumService {
 
         } catch (Exception e) {
             throw new Exception("Loi khi dang xuat: " + e.getMessage());
-
         }
 
     }

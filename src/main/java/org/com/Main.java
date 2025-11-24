@@ -25,8 +25,6 @@ public class Main {
 
         try {
             while (true) {
-                int MAX_TIMES_TRY = 5;
-                int tryTimes = 0; // reset try times for each account
                 // get first email from file
                 String email = fileService.getFirstEmail();
                 // get list product details in one order from file
@@ -39,61 +37,19 @@ public class Main {
                     break; // Exit if no emails are found
                 }
                 // 1. start register
-                while (true) {
-                    if (tryTimes < MAX_TIMES_TRY) {
-                        try {
-                            seleniumService.register(email, personalData);
-                            tryTimes = 0;
-                            break;
-                        } catch (Exception e) {
-                            tryTimes++;
-                            System.out.println("Loi dang ky tai khoan. Thu lai lan " + tryTimes + "..." + e.getMessage());
-                            Thread.sleep(2000);
-                        }
-                    } else {
-                        throw new Exception("Reach max retry times for register account.");
-                    }
-                }
+                seleniumService.register(email, personalData);
 
                 // 2. wait for user to verify email and login
                 seleniumService.insertCodeToVerifyEmail(email);
 
                 // 3. wait for user to add product to cart
-                String storeName;
-                while (true) {
-                    if (tryTimes < MAX_TIMES_TRY) {
-                        try {
-                            storeName = waitForAddProductToCart(driver, seleniumService, productDetails);
-                            tryTimes = 0;
-                            break;
-                        } catch (Exception e) {
-                            tryTimes++;
-                            System.out.println("Loi khi them san pham vao gio hang. Thu lai lan " + tryTimes + "..." + e.getMessage());
-                            Thread.sleep(2000);
-                        }
-                    } else {
-                        throw new Exception("Reach max retry times for add product to cart.");
-                    }
-                }
+                String storeName = waitForAddProductToCart(driver, seleniumService, productDetails);
 
                 // 4. wait for user to start order
-                while (true) {
-                    if (tryTimes < MAX_TIMES_TRY) {
-                        try {
-                            waitForStartOrder(driver, personalData, storeName);
-                            break;
-                        } catch (Exception e) {
-                            tryTimes++;
-                            System.out.println("Loi dang ky tai khoan. Thu lai lan " + tryTimes + "..." + e.getMessage());
-                            Thread.sleep(2000);
-                        }
-                    } else {
-                        throw new Exception("Reach max retry times for register account.");
-                    }
-                }
+                waitForStartOrder(driver, personalData, storeName);
+
                 // 5. wait for user to logout
                 waitForLogout(driver, seleniumService);
-                Thread.sleep(1000);
             }
 
         } catch (Exception e) {

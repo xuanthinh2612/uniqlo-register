@@ -26,10 +26,7 @@ public class ChromeHelper {
                 ChromeOptions options = new ChromeOptions();
                 options.addArguments("--remote-allow-origins=*");
                 options.setExperimentalOption("debuggerAddress", "127.0.0.1:" + port); // Cổng debug
-                System.out.println("bat dau tao driver chorme");
-                ChromeDriver chromeDriver = new ChromeDriver(options);
-                System.out.println("tao driver chorme xong va tra ve");
-                return chromeDriver;
+                return new ChromeDriver(options);
 
             } catch (Exception e) {
                 System.out.println("Exception: Loi khi tao ChromeDriver, thu lai lan " + (tryCount + 1));
