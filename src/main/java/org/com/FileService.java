@@ -1,6 +1,9 @@
 package org.com;
 
 import java.io.*;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -16,13 +19,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class FileService {
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    private static final int MAX_EMAIL_COUNT = 1;
+//    private static final int MAX_EMAIL_COUNT = 1;
     private static final String EMAIL_LIST = "fileInput/emailList.txt";
     private static final String DONE_LIST = "fileInput/doneList.txt";
     private static final String ACTION_FILE = "fileInput/action.txt";
     private static final String JSON_FILE = "fileInput/portUserProfileStatus.txt";
-    private static final int MAX_RETRIES = 5;
+    private static final int MAX_RETRIES = 10;
     private static final String EMAIL_AND_CODE_FILE = "fileInput/emailsAndCode.txt"; // file chứa đoạn text bạn nói
+    String inputFile = "fileInput/productsList.txt";
+    String doneFile = "fileInput/productDoneList.txt";
 
 
     public Map<String, String> getPersonalDataSet() {
@@ -51,6 +56,7 @@ public class FileService {
         return personalData;
     }
 
+
     public String getActionFlag() {
         StringBuilder actionCode = new StringBuilder();
 
@@ -67,106 +73,139 @@ public class FileService {
         return actionCode.toString().trim();
     }
 
+
     public List<String> getProductDetails() {
-        String inputFile = "fileInput/productsList.txt";
-        String doneFile = "fileInput/productDoneList.txt";
         List<String> productDetails = new ArrayList<>();
 
+        Path inputPath = Paths.get(inputFile);
+        Path donePath = Paths.get(doneFile);
+
         int count = 0;
+
         while (count < MAX_RETRIES) {
             try {
                 Thread.sleep(1000);
-                // Đọc toàn bộ file productsList.txt
-                List<String> lines = Files.readAllLines(Paths.get(inputFile), StandardCharsets.UTF_8);
-                if (!lines.isEmpty()) {
-                    // Lấy dòng đầu tiên
-                    String firstLine = lines.get(0);
-                    productDetails = Arrays.asList(firstLine.split(","));
-                    // Xóa dòng đầu tiên khỏi danh sách
-                    lines.remove(0);
-                    // Ghi đè lại file gốc (productsList.txt) với phần còn lại
-                    Files.write(Paths.get(inputFile), lines);
-                    // Append dòng đầu tiên vào file productsDoneList.txt
-                    Files.write(Paths.get(doneFile),
-                            Collections.singletonList(firstLine),
-                            StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-                }
-                break; // Thoát vòng lặp nếu thành công
+                // try-with-resources cho cả channel và lock
+                try (FileChannel channel = FileChannel.open(
+                        inputPath,
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.READ,
+                        StandardOpenOption.WRITE
+                );
+                     FileLock ignored = channel.lock()  // lock exclusive
+                ) {
+
+                    List<String> lines = Files.readAllLines(inputPath, StandardCharsets.UTF_8);
+
+                    if (!lines.isEmpty()) {
+                        String firstLine = lines.get(0);
+                        productDetails = Arrays.asList(firstLine.split(","));
+
+                        // Xóa dòng đầu và ghi phần còn lại
+                        lines.remove(0);
+                        Files.write(inputPath, lines, StandardCharsets.UTF_8);
+
+                        // Append vào done file
+                        Files.write(
+                                donePath,
+                                Collections.singletonList(firstLine + System.lineSeparator()),
+                                StandardOpenOption.CREATE,
+                                StandardOpenOption.APPEND
+                        );
+                    }
+
+                } // channel và lock được auto close & release ở đây
+
+                break; // thành công
+
             } catch (Exception e) {
-                System.out.println("Loi khi doc file productsList.txt: " + e.getMessage() + "\n Thu lai lan: " + count);
+                System.out.println("Loi khi doc file productsList.txt: " + e);
             }
+
             count++;
         }
+
         return productDetails;
     }
 
+
     public String getFirstEmail() {
-        String line = null;
-        int count = 0;
-        while (count < MAX_RETRIES) {
+        Path emailListPath = Paths.get(EMAIL_LIST);
+
+        for (int retry = 0; retry < MAX_RETRIES; retry++) {
             try {
                 Thread.sleep(1000);
-                List<String> lines = Files.readAllLines(Paths.get(EMAIL_LIST), StandardCharsets.UTF_8);
-                line = lines.get(0).trim();
-                // remove used email from the list
-                List<String> removedEmails = new ArrayList<>();
-                removedEmails.add(line);
-                moveProcessedEmails(removedEmails);
-                break;
+
+                // Mở file với cả quyền READ và WRITE để sửa file sau khi đọc
+                try (
+                        FileChannel channel = FileChannel.open(
+                                emailListPath,
+                                StandardOpenOption.READ,
+                                StandardOpenOption.WRITE
+                        );
+
+                        // LOCK độc quyền (exclusive lock) để đảm bảo chỉ 1 process vào đây
+                        FileLock ignored = channel.lock()
+                ) {
+                    // Đọc nội dung file qua chính channel đang được lock
+                    BufferedReader reader = new BufferedReader(
+                            Channels.newReader(channel, StandardCharsets.UTF_8));
+
+                    List<String> lines = new ArrayList<>();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        if (!line.trim().isEmpty()) {
+                            lines.add(line.trim());
+                        }
+                    }
+
+                    if (lines.isEmpty()) return null;
+
+                    // Lấy email đầu
+                    String firstEmail = lines.get(0);
+
+                    // Xóa email đầu ra khỏi list
+                    lines.remove(0);
+
+                    // Ghi lại phần còn lại của file
+                    channel.truncate(0);                 // xóa toàn bộ file
+                    channel.position(0);                 // quay về đầu file
+                    BufferedWriter writer = new BufferedWriter(
+                            Channels.newWriter(channel, StandardCharsets.UTF_8));
+
+                    for (String e : lines) {
+                        writer.write(e);
+                        writer.newLine();
+                    }
+                    writer.flush();
+
+                    // Append email đã xử lý vào doneList
+                    appendDoneList(firstEmail);
+
+                    return firstEmail;
+                }
+
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                System.out.println("Retry vi loi or file dang lock: " + e.getMessage());
             }
-            count++;
         }
-        return line;
+
+        return null;
     }
 
-    /**
-     * Xóa các email đã xử lý khỏi emailList.txt và append chúng vào doneList.txt.
-     */
-    public void moveProcessedEmails(List<String> processedEmails) throws Exception {
-        List<String> remaining = new ArrayList<>();
+    private void appendDoneList(String email) throws Exception {
+        Path donePath = Paths.get(DONE_LIST);
 
-        // 1. Đọc lại toàn bộ emailList, giữ lại những email không có trong processedEmails
-        try (
-                FileReader fr = new FileReader(EMAIL_LIST);
-                BufferedReader br = new BufferedReader(fr)
-        ) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                line = line.trim();
-                if (!line.isEmpty() && !processedEmails.contains(line)) {
-                    remaining.add(line);
-                }
-            }
-        } catch (IOException e) {
-            throw new Exception(e.getMessage());
-        }
-
-        // 2. Ghi đè lại emailList.txt với danh sách remaining
-        try (
-                FileWriter fw = new FileWriter(EMAIL_LIST, false); // false = overwrite
-                BufferedWriter bw = new BufferedWriter(fw)
-        ) {
-            for (String email : remaining) {
-                bw.write(email);
-                bw.newLine();
-            }
-        } catch (IOException e) {
-            throw new Exception(e.getMessage());
-        }
-
-        // 3. Append processedEmails vào doneList.txt
-        try (
-                FileWriter fwDone = new FileWriter(DONE_LIST, true); // true = append
-                BufferedWriter bwDone = new BufferedWriter(fwDone)
-        ) {
-            for (String email : processedEmails) {
-                bwDone.write(email);
-                bwDone.newLine();
-            }
-        } catch (IOException e) {
-            throw new Exception(e.getMessage());
+        // Append không cần lock
+        try (BufferedWriter writer = Files.newBufferedWriter(
+                donePath,
+                StandardCharsets.UTF_8,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.APPEND
+        )) {
+            writer.write(email);
+            writer.newLine();
+            writer.flush();
         }
     }
 
