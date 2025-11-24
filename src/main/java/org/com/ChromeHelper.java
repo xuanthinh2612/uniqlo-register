@@ -20,7 +20,6 @@ public class ChromeHelper {
 
         CURRENT_PORT = port;
         ChromeHelper.startChrome(port, userProfileDir);
-        System.out.println("start chorme xong");
         while (tryCount < MAX_RETRIES) {
             try {
                 ChromeOptions options = new ChromeOptions();
