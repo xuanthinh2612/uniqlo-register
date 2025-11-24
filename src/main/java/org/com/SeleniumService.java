@@ -8,6 +8,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SeleniumService {
 
@@ -249,6 +251,59 @@ public class SeleniumService {
 
         } catch (Exception e) {
             System.out.println("Loi khi them san pham vao gio hang: " + e.getMessage());
+        }
+
+    }
+
+    public void checkProductInCart(WebDriver driver, String email) {
+
+        try {
+            // 1. Vào giỏ hàng
+            if (productLink.contains(UNIQLO_LINK)) {
+                driver.get("https://www.uniqlo.com/jp/ja/cart");
+            } else {
+                driver.get("https://www.gu-global.com/jp/ja/cart");
+            }
+
+            Thread.sleep(1000 + random.nextInt(1000));
+
+            WebElement container = driver.findElement(
+                    By.xpath("//div[contains(@class, 'fr-ec-mb-spacer-32')]")
+            );
+
+            List<WebElement> products = container.findElements(
+                    By.xpath(".//div[contains(@class,'fr-ec-product-tile fr-ec-product-tile__horizontal fr-ec-product-tile__horizontal-small')]")
+            );
+
+            System.out.println("---start---");
+            System.out.println(products.size());
+            for (WebElement product : products) {
+
+                // Lấy code từ ảnh
+                WebElement img = product.findElement(By.xpath(".//div[contains(@class,'fr-ec-product-tile__image')]//img"));
+                String imgSrc = img.getAttribute("src");
+                Pattern p = Pattern.compile("/(\\d{6})/");
+                assert imgSrc != null;
+                Matcher m = p.matcher(imgSrc);
+                String code = null;
+                if (m.find()) {
+                    code = m.group(1);
+                }
+
+                // Lấy màu
+                String colorText = product.findElement(By.xpath(".//p[contains(text(),'カラー')]")).getText();
+                String color = colorText.replaceAll("カラー:\\s*\\d+\\s+", "");
+
+                // Lấy size
+                String sizeText = product.findElement(By.xpath(".//p[contains(text(),'サイズ')]")).getText();
+                String size = sizeText.replaceAll(".*\\s", "");
+
+                // Lấy giá
+                String amount = product.findElement(By.xpath(".//div[contains(@class,'fr-ec-text-transform-normal fr-ec-counter__value')]")).getText();
+            }
+
+        } catch (Exception e) {
+            System.out.println("Loi khi Check gio hàng: " + e.getMessage());
         }
 
     }
