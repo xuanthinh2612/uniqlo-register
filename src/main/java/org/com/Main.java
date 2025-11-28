@@ -43,7 +43,7 @@ public class Main {
                 seleniumService.insertCodeToVerifyEmail(email);
 
                 // 3. wait for user to add product to cart
-                String storeName = waitForAddProductToCart(driver, seleniumService, productDetails);
+                String storeName = waitForAddProductToCart(driver, seleniumService, productDetails, email);
 
                 // 4. wait for user to start order
                 waitForStartOrder(driver, personalData, storeName);
@@ -60,7 +60,8 @@ public class Main {
         System.exit(0);
     }
 
-    public static String waitForAddProductToCart(WebDriver driver, SeleniumService seleniumService, List<String> productDetails)
+    public static String waitForAddProductToCart(WebDriver driver, SeleniumService seleniumService,
+                                                 List<String> productDetails, String email)
             throws Exception {
         while (true) {
             // if productDetails is empty, exit the loop
@@ -83,7 +84,7 @@ public class Main {
 
             if (actionFlag == ADD_PRODUCT_READY) {
 
-                seleniumService.addProductsToCart(driver, productDetails);
+                seleniumService.addProductsToCart(driver, productDetails, email);
 
                 // Nếu đặt hàng đến cửa hàng, trả về tên cửa hàng
                 int orderType = productDetails.size() % COLUMN_OF_ONE_PRODUCT == 0 ? ORDER_TO_STOCK_TYPE : ORDER_TO_SHOP_TYPE;

@@ -21,7 +21,7 @@ public class UniqloSeleniumService {
         this.driver = driver;
 
         // Khởi tạo WebDriverWait với timeout 10s
-        wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        wait = new WebDriverWait(driver, Duration.ofSeconds(30));
     }
 
     public void order(String familyName, String givenName, String phoneticFamilyName, String phoneticGivenName,

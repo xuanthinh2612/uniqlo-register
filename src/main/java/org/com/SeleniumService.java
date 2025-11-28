@@ -28,7 +28,7 @@ public class SeleniumService {
         this.uniqloSeleniumService = new UniqloSeleniumService(driver);
         this.guSeleniumService = new GUSeleniumService(driver);
         // Khởi tạo WebDriverWait với timeout 10s
-        wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        wait = new WebDriverWait(driver, Duration.ofSeconds(30));
     }
 
     public void register(String email, Map<String, String> personalDataSet) throws Exception {
@@ -103,7 +103,7 @@ public class SeleniumService {
 //            clickElementByJs(confirmInfoBtn);
 
             // Hoàn thành
-            System.out.println("Dang ky thanh cong! Vui long dat hang.");
+            System.out.println("Dang ky thanh cong! email: " + email);
 
         } catch (Exception e) {
             throw new Exception("Loi khi dang ky: " + e.getMessage());
@@ -151,7 +151,7 @@ public class SeleniumService {
 
     }
 
-    public void addProductsToCart(WebDriver driver, List<String> productsDetailList) throws Exception {
+    public void addProductsToCart(WebDriver driver, List<String> productsDetailList, String email) throws Exception {
         // check if gu page then login
         if (!productLink.contains(UNIQLO_LINK)) {
             driver.get("https://www.gu-global.com/jp/ja/member");
@@ -173,7 +173,9 @@ public class SeleniumService {
             }
         }
 
-        System.out.println("Da them tat ca san pham vao gio hang. Vui long kiem tra lai gio hang va dat hang.");
+        System.out.println("Da them tat ca san pham vao gio hang.");
+        // after add product to cart, go to cart and check
+        checkProductInCart(driver, email);
 
     }
 
@@ -250,7 +252,7 @@ public class SeleniumService {
             Thread.sleep(2000 + random.nextInt(500));
 
         } catch (Exception e) {
-            System.out.println("Loi khi them san pham vao gio hang: " + e.getMessage());
+            System.out.println("Loi khi them san pham: " + productUrl + "vao gio hang: " + e.getMessage());
         }
 
     }
@@ -275,10 +277,9 @@ public class SeleniumService {
                     By.xpath(".//div[contains(@class,'fr-ec-product-tile fr-ec-product-tile__horizontal fr-ec-product-tile__horizontal-small')]")
             );
 
-            System.out.println("---start---");
-            System.out.println(products.size());
-            for (WebElement product : products) {
+            StringBuilder orderingProductInfo = new StringBuilder(email);
 
+            for (WebElement product : products) {
                 // Lấy code từ ảnh
                 WebElement img = product.findElement(By.xpath(".//div[contains(@class,'fr-ec-product-tile__image')]//img"));
                 String imgSrc = img.getAttribute("src");
@@ -293,17 +294,21 @@ public class SeleniumService {
                 // Lấy màu
                 String colorText = product.findElement(By.xpath(".//p[contains(text(),'カラー')]")).getText();
                 String color = colorText.replaceAll("カラー:\\s*\\d+\\s+", "");
-
                 // Lấy size
                 String sizeText = product.findElement(By.xpath(".//p[contains(text(),'サイズ')]")).getText();
                 String size = sizeText.replaceAll(".*\\s", "");
-
                 // Lấy giá
                 String amount = product.findElement(By.xpath(".//div[contains(@class,'fr-ec-text-transform-normal fr-ec-counter__value')]")).getText();
+
+                // combine to 1 line string
+                orderingProductInfo.append(",").append(code).append(",").append(amount).append(",").append(size).append(",").append(color);
+
             }
 
+            FileService.appendOrderedProductListInfo(orderingProductInfo.toString());
+
         } catch (Exception e) {
-            System.out.println("Loi khi Check gio hàng: " + e.getMessage());
+            System.out.println("Loi khi Check gio hàng.....!");
         }
 
     }

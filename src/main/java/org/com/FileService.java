@@ -28,8 +28,9 @@ public class FileService {
     private static final String EMAIL_AND_CODE_FILE = "fileInput/emailsAndCode.txt"; // file chứa đoạn text bạn nói
     private static final String AVAILABLE = "available";
     private static final String IN_USE = "in_use";
-    String inputFile = "fileInput/productsList.txt";
-    String doneFile = "fileInput/productDoneList.txt";
+    private static final String PRODUCT_LIST = "fileInput/productsList.txt";
+    private static final String PRODUCT_DONE_LIST = "fileInput/productDoneList.txt";
+    private static final String PRODUCTS_IN_CART = "fileInput/productsInCart.txt";
 
 
     public Map<String, String> getPersonalDataSet() {
@@ -79,8 +80,8 @@ public class FileService {
     public List<String> getProductDetails() {
         List<String> productDetails = new ArrayList<>();
 
-        Path inputPath = Paths.get(inputFile);
-        Path donePath = Paths.get(doneFile);
+        Path inputPath = Paths.get(PRODUCT_LIST);
+        Path donePath = Paths.get(PRODUCT_DONE_LIST);
 
         int count = 0;
 
@@ -408,4 +409,42 @@ public class FileService {
         // Trả về code tương ứng email truyền vào
         return resultMap.getOrDefault(emailToFind, null);
     }
+
+    public static void appendOrderedProductListInfo(String orderingProductListInfo) {
+        Path orderedProductList = Paths.get(PRODUCTS_IN_CART);
+
+        for (int retry = 0; retry < MAX_RETRIES; retry++) {
+            try {
+                Thread.sleep(1000);
+
+                // Mở file với cả quyền READ và WRITE để sửa file sau khi đọc
+                try (
+                        FileChannel channel = FileChannel.open(
+                                orderedProductList,
+                                StandardOpenOption.READ,
+                                StandardOpenOption.WRITE,
+                                StandardOpenOption.APPEND
+                        );
+
+                        // LOCK độc quyền (exclusive lock) để đảm bảo chỉ 1 process vào đây
+                        FileLock ignored = channel.lock()
+                ) {
+                    // Ghi lại phần còn lại của file
+                    BufferedWriter writer = new BufferedWriter(
+                            Channels.newWriter(channel, StandardCharsets.UTF_8));
+
+                    writer.write(orderingProductListInfo);
+                    writer.newLine();
+                    writer.flush();
+                }
+
+                return;
+
+            } catch (Exception e) {
+                System.out.println("Retry vi loi or file dang lock: " + e.getMessage());
+            }
+        }
+
+    }
+
 }
