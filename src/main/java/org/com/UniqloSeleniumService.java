@@ -263,6 +263,7 @@ public class UniqloSeleniumService {
             Thread.sleep(1000 + random.nextInt(500));
 
             // 9. Cuộn xuống, nhập thông tin vào các input theo id
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("id-familyName")));
             WebElement familyNameElement = driver.findElement(By.id("id-familyName"));
             ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", familyNameElement);
             Thread.sleep(600 + random.nextInt(500));

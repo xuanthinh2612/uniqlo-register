@@ -423,18 +423,38 @@ public class FileService {
                                 orderedProductList,
                                 StandardOpenOption.READ,
                                 StandardOpenOption.WRITE,
-                                StandardOpenOption.APPEND
+                                StandardOpenOption.CREATE
                         );
 
                         // LOCK độc quyền (exclusive lock) để đảm bảo chỉ 1 process vào đây
                         FileLock ignored = channel.lock()
                 ) {
+                    Thread.sleep(1000);
+                    // Đọc nội dung file qua chính channel đang được lock
+                    BufferedReader reader = new BufferedReader(
+                            Channels.newReader(channel, StandardCharsets.UTF_8));
+
+                    List<String> lines = new ArrayList<>();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        if (!line.trim().isEmpty()) {
+                            lines.add(line.trim());
+                        }
+                    }
+
+                    // Thêm thông tin hàng trong giỏ hàng vào danh sách trong file
+                    lines.add(orderingProductListInfo);
+
                     // Ghi lại phần còn lại của file
+                    channel.truncate(0);                 // xóa toàn bộ file
+                    channel.position(0);                 // quay về đầu file
                     BufferedWriter writer = new BufferedWriter(
                             Channels.newWriter(channel, StandardCharsets.UTF_8));
 
-                    writer.write(orderingProductListInfo);
-                    writer.newLine();
+                    for (String e : lines) {
+                        writer.write(e);
+                        writer.newLine();
+                    }
                     writer.flush();
                 }
 

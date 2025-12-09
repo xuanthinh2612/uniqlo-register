@@ -267,11 +267,10 @@ public class SeleniumService {
                 driver.get("https://www.gu-global.com/jp/ja/cart");
             }
 
-            Thread.sleep(1000 + random.nextInt(1000));
+            Thread.sleep(2000 + random.nextInt(1000));
 
-            WebElement container = driver.findElement(
-                    By.xpath("//div[contains(@class, 'fr-ec-mb-spacer-32')]")
-            );
+            By containerBy = By.xpath("//div[contains(@class, 'fr-ec-mb-spacer-32')]");
+            WebElement container = wait.until(ExpectedConditions.visibilityOfElementLocated(containerBy));
 
             List<WebElement> products = container.findElements(
                     By.xpath(".//div[contains(@class,'fr-ec-product-tile fr-ec-product-tile__horizontal fr-ec-product-tile__horizontal-small')]")
